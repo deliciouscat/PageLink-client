@@ -1,0 +1,34 @@
+/* Light Theme (Default) */
+:root {
+  --background: #FFFFFF;
+  --main: #2A4D4D;
+  --grey-lv1: #F0F5F4;
+  --grey-lv2: #C4CCCC;
+  --grey-lv3: #798080;
+  --font-black: #333230;
+  --notification: #D13B6D;
+}
+
+/* Dark Theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1A1A1A;
+    --main: #4FD1C7;
+    --grey-lv1: #2A2A2A;
+    --grey-lv2: #505050;
+    --grey-lv3: #A0A0A0;
+    --font-black: #E5E5E5;
+    --notification: #FF6B9D;
+  }
+}
+
+/* Manual dark mode toggle */
+[data-theme="dark"] {
+  --background: #1A1A1A;
+  --main: #4FD1C7;
+  --grey-lv1: #2A2A2A;
+  --grey-lv2: #505050;
+  --grey-lv3: #A0A0A0;
+  --font-black: #E5E5E5;
+  --notification: #FF6B9D;
+}

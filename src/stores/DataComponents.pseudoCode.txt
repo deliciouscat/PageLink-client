@@ -1,0 +1,34 @@
+# Pseudo Code
+
+Interface FileSystem(
+    Functions(
+        updateVisible()
+    )
+)
+
+Composite Collection {implements: FileSystem}(
+    passage: string,
+    visible: boolean,
+    children: list[Document],
+
+    Functions(
+        updateVisible(){
+            검색 기능 사용 중에 호출되는 함수. visible default 값은 true. (검색중이 아닐 시 모든 Collection/Document 표시.)
+            children에 visible이 true인 것이 있거나, 자기 자신이 visible이 true인 경우 true. (passage에 matching하는 단어가 있는 경우)
+        }
+        addDocument(item: Document){
+            입력된 Document를 children에 추가.
+        }
+    )
+)
+
+Leaf Document {implements: FileSystem}(
+    passage: string,
+    visible: boolean,
+
+    Functions(
+        updateVisible(){
+            자기 자신이 visible이 true인 경우 true. (passage에 matching하는 단어가 있는 경우)
+        }
+    )
+)

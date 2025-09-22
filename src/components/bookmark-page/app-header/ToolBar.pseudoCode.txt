@@ -1,74 +1,68 @@
 # ToolBar Animation Pseudo Code
 
-appHeaderArea = // 앱 헤더 영역
+Interface BoxSizingSystem(
+    Properties(
+        size: float,
+        areaFor: str
+    ),
+    Functions(
+        swap{
+                구현: size와 areaFor를 유지하고 `Blank <-> TextInputBox` 변환. (사이즈가 1이 아닌 Blank는 TextInputBox로 변환될 수 없음)
+            },
+    )
+)
 
-placement = [Blank(), Icon("material-symbols: search icon"), Icon("material-symbols: plus icon")]    // default
+Class Blank {implements: BoxSizingSystem}(
+    Properties(
+        size: float,
+        areaFor: str,
+    )
+)
+
+Class TextInputBox {implements: BoxSizingSystem}(
+    Properties(
+        size: 1,    // TextInputBox는 항상 1(최대비율) 사이즈임.
+        areaFor: str
+    )
+)
+
+appHeaderArea = `앱 헤더 영역 (바깥 클릭 확인하기 위해)`
+
+search_button = IconButton("material-symbols: search icon")
+add_button = IconButton("material-symbols: plus icon")
+placement = [Blank(size: 1, areaFor: "default"), search_button, Blank(size: 0, areaFor: "search"), add_button, Blank(size: 0, areaFor: "add")]    // default
 toolbar = dynamic HorizonalGrid(placement)
 
-if last_click = "search icon" :
-    placement = [Icon("material-symbols: search icon"), Blank(), Icon("material-symbols: plus icon")]
-    sleep(0.2 seconds)
-    placement.swap_blank_to(TextInputBox())
+if `버튼이 클릭되면` :
+    if last_click = "search" :
+        Animate(placement)
+        sleep(0.1 seconds)
+        구현: `~.areaFor==last_click`인 Blank를 TextInputBox로 swap
+        // 목표 : placement = [Blank(size: 0), search_button, Blank(size: 1), add_button, Blank(size:0)]
+        placement.swap_blank_to(TextInputBox())
 
-if last_click = "plus icon" :
-    placement = [Icon("material-symbols: search icon"), Icon("material-symbols: plus icon"), Blank()]
-    sleep(0.2 seconds)
-    placement.swap_blank_to(TextInputBox())
+    if last_click = "add" :
+        Animate(placement)
+        sleep(0.1 seconds)
+        구현: `~.areaFor==last_click`인 Blank를 TextInputBox로 swap
+        // 목표 : placement = [Blank(size: 0), search_button, Blank(size: 0), add_button, Blank(size: 1)]
+        placement.swap_blank_to(TextInputBox())
 
-if last_click not in ["search icon", "plus icon"] and last_click in appHeaderArea :
-    placement = [Blank(), Icon("material-symbols: search icon"), Icon("material-symbols: plus icon")]    // back to default
+    if last_click not in ["search icon", "plus icon"] and last_click in appHeaderArea :
+        // 목표 : placement = [Blank(size: 1), search_button, Blank(size: 0), add_button, Blank(size: 0)]    // back to default
 
-# Animation Details
 
-## Grid Layout Configuration
-toolbar.grid_template_columns = "1fr auto auto"
-toolbar.gap = 16px
-toolbar.max_width = 400px
+## Animation Details
 
-## Element Sizing Rules
-Blank().flex_grow = 1
-Blank().flex_shrink = 1
-Blank().flex_basis = 0
-Blank().background_color = red  // for debugging
+function Animate(placement){
+    if TextInputBox in placement: 
+        TextInputBox.swap
+    구현: placement에서 `~.areaFor == last_click`인 Blank 요소의 size가 1이 되고 나머지 Blank들은 size가 0으로 축소되도록 animate.
+}
 
-TextInputBox().flex_grow = 1
-TextInputBox().flex_shrink = 1
-TextInputBox().flex_basis = 0
 
-Icon().flex_grow = 0
-Icon().flex_shrink = 0
-Icon().flex_basis = auto
-Icon().width = 24px
-Icon().height = 24px
-
-## Animation Sequence
-when placement changes:
-    1. update placement array
-    2. animate non-blank items with:
-        - y: 10px -> 0px
-        - opacity: 0.7 -> 1
-        - duration: 0.3s
-        - stagger: 0.05s
-    3. wait 0.2 seconds
-    4. swap Blank() to TextInputBox()
-    5. animate TextInputBox() appearance:
-        - scale: 0.8 -> 1
-        - opacity: 0 -> 1
-        - duration: 0.3s
-        - ease: back.out(1.7)
-        - onComplete: focus input
-
-when reset to default:
-    1. animate all items out:
-        - scale: 1 -> 0.8
-        - opacity: 1 -> 0.5
-        - duration: 0.2s
-        - stagger: 0.03s
-    2. reset placement to default
-    3. clear input value
-    4. animate items in:
-        - scale: 0.8 -> 1
-        - opacity: 0.5 -> 1
-        - duration: 0.3s
-        - stagger: 0.05s
-        - ease: back.out(1.7)
+## Output 양식
+{
+    toolbar_operation: "search" or "add",
+    toolbar_input: str
+}

@@ -1,21 +1,22 @@
 <!--
 # Pseudo Code
+import ToolBar.vue
 
-## 임포트
-import chrome-api
-import app-header, bottom-sheet, collections
-
-## UI 컴포넌트
 VerticalGrid(
-    app-header,
-    bottom-sheet,
-    collections
+    HorizontalGrid(
+        Image("src/components/assets/logo.svg"),
+        IconButton("material-symbols: account_circle"),
+        IconButton("material-symbols: settings"),
+        BoxButton(
+            contains: Text("탐색하기"),
+            onPress: () => {
+                console.log("준비중인 기능입니다.");
+            },
+        ),
+    ),
+    ToolBar(),
+    HorizontalLine()
 )
-
-## app-header의 `검색`/`collection 추가` 컴포넌트를 사용해 `collections` 조작
-
-
-
 
 
 

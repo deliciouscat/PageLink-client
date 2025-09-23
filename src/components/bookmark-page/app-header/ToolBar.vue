@@ -1,254 +1,220 @@
-<!--
-# pseudo code
-
-appHeaderArea = // 앱 헤더 영역
-
-placement = [Blank(), Icon("material-symbols: search icon"), Icon("material-symbols: plus icon")]    // default
-toolbar = dynamic HorizonalGrid(placement)
-
-if last_click = "search icon" :
-    placement = [Icon("material-symbols: search icon"), Blank(), Icon("material-symbols: plus icon")]
-    sleep(0.2 seconds)
-    placement.swap_blank_to(TextInputBox())
-
-if last_click = "plus icon" :
-    placement = [Icon("material-symbols: search icon"), Icon("material-symbols: plus icon"), Blank()]
-    sleep(0.2 seconds)
-    placement.swap_blank_to(TextInputBox())
-
-if last_click not in ["search icon", "plus icon"] and last_click in appHeaderArea :
-    placement = [Blank(), Icon("material-symbols: search icon"), Icon("material-symbols: plus icon")]    // back todefault
-
--->
-
 <template>
-    <div class="app-header-area" @click="handleHeaderClick" ref="headerRef">
-        <div class="toolbar" ref="toolbarRef">
-            <div v-for="(item, index) in placement" :key="`${item.type}-${index}`" class="toolbar-item"
-                :class="item.type" @click="handleItemClick(item.type, $event)">
-                <!-- Search Icon -->
-                <div v-if="item.type === 'search'" class="icon search-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24">
-                        <path fill="currentColor"
-                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                    </svg>
-                </div>
+  <div class="toolbar" ref="toolbarRef">
+    <!-- Blank (default) -->
+    <div class="toolbar-item blank" :style="{ flex: placementSizes[0] }" @click="handleBlankClick"></div>
 
-                <!-- Plus Icon -->
-                <div v-else-if="item.type === 'plus'" class="icon plus-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                    </svg>
-                </div>
+    <!-- Search Button -->
+    <button class="toolbar-item icon-button" @click="handleSearchClick" :class="{ active: state === 'search' }">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+        <path
+          d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
+      </svg>
+    </button>
 
-                <!-- Text Input -->
-                <input v-else-if="item.type === 'input'" type="text" class="text-input" :placeholder="inputPlaceholder"
-                    v-model="inputValue" ref="textInputRef" />
-
-                <!-- Blank Space -->
-                <div v-else-if="item.type === 'blank'" class="blank-space"></div>
-            </div>
-        </div>
+    <!-- Blank/TextInput (search) -->
+    <div class="toolbar-item" :style="{ flex: placementSizes[2] }">
+      <input v-if="state === 'search' && placementSizes[2] === 1" ref="searchInputRef" type="text" v-model="searchInput"
+        @input="handleSearchInput" @keyup.enter="handleSearchSubmit" placeholder="검색..." class="text-input" />
     </div>
+
+    <!-- Add Button -->
+    <button class="toolbar-item icon-button" @click="handleAddClick" :class="{ active: state === 'add' }">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+        <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
+      </svg>
+    </button>
+
+    <!-- Blank/TextInput (add) -->
+    <div class="toolbar-item" :style="{ flex: placementSizes[4] }">
+      <input v-if="state === 'add' && placementSizes[4] === 1" ref="addInputRef" type="text" v-model="addInput"
+        @keyup.enter="handleAddSubmit" placeholder="새 컬렉션..." class="text-input" />
+    </div>
+  </div>
 </template>
 
-<script setup>
-import { ref, reactive, nextTick, computed, onMounted } from 'vue'
-import { gsap } from 'gsap'
+<script setup lang="ts">
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { useFileSystemStore } from '@/stores/DataComponents'
 
-// Reactive state
-const lastClick = ref('')
-const inputValue = ref('')
-const headerRef = ref(null)
-const toolbarRef = ref(null)
-const textInputRef = ref(null)
+// Props & Emits
+const emit = defineEmits<{
+  toolbarOperation: [value: { toolbar_operation: 'search' | 'add', toolbar_input: string }]
+}>()
 
-// Default placement configuration
-const defaultPlacement = [
-    { type: 'blank', id: 'blank' },
-    { type: 'search', id: 'search' },
-    { type: 'plus', id: 'plus' }
-]
+// Store
+const fileSystemStore = useFileSystemStore()
 
-const placement = reactive([...defaultPlacement])
+// State
+const state = ref<'default' | 'search' | 'add'>('default')
+const searchInput = ref('')
+const addInput = ref('')
 
-// Computed properties
-const inputPlaceholder = computed(() => {
-    return lastClick.value === 'search' ? '검색어를 입력하세요...' : '새 파일 이름...'
+// Refs
+const toolbarRef = ref<HTMLElement>()
+const searchInputRef = ref<HTMLInputElement>()
+const addInputRef = ref<HTMLInputElement>()
+
+// Computed placement sizes based on state
+const placementSizes = computed(() => {
+  switch (state.value) {
+    case 'search':
+      return [0, 0, 1, 0, 0] // [Blank(0), search_button, TextInput(1), add_button, Blank(0)]
+    case 'add':
+      return [0, 0, 0, 0, 1] // [Blank(0), search_button, Blank(0), add_button, TextInput(1)]
+    default:
+      return [1, 0, 0, 0, 0] // [Blank(1), search_button, Blank(0), add_button, Blank(0)]
+  }
 })
 
-// Animation timeline
-let tl = null
+// Animation delay
+const animationDelay = 100 // 0.1 seconds
 
-// Handle item click (icons)
-const handleItemClick = async (type, event) => {
-    event.stopPropagation()
+// Handle search button click
+async function handleSearchClick() {
+  if (state.value === 'search') {
+    handleSearchSubmit()
+    return
+  }
 
-    if (type === 'search' || type === 'plus') {
-        lastClick.value = type
-        await animateToNewLayout(type)
-    }
+  state.value = 'search'
+  await nextTick()
+  setTimeout(() => {
+    searchInputRef.value?.focus()
+  }, animationDelay)
 }
 
-// Handle header area click (reset to default)
-const handleHeaderClick = async (event) => {
-    const clickedElement = event.target.closest('.toolbar-item')
+// Handle add button click
+async function handleAddClick() {
+  if (state.value === 'add') {
+    handleAddSubmit()
+    return
+  }
 
-    // If clicked outside toolbar items or on blank space, reset to default
-    if (!clickedElement || clickedElement.classList.contains('blank')) {
-        lastClick.value = ''
-        await animateToDefault()
-    }
+  state.value = 'add'
+  await nextTick()
+  setTimeout(() => {
+    addInputRef.value?.focus()
+  }, animationDelay)
 }
 
-// Animate to new layout based on clicked icon
-const animateToNewLayout = async (clickedType) => {
-    // Kill any existing animation
-    if (tl) tl.kill()
+// Handle blank click (return to default)
+function handleBlankClick() {
+  resetToDefault()
+}
 
-    // Create new timeline
-    tl = gsap.timeline()
+// Handle search input
+function handleSearchInput() {
+  fileSystemStore.search(searchInput.value)
+}
 
-    // Step 1: Slide to new positions
-    if (clickedType === 'search') {
-        // [Search, Blank, Plus]
-        placement[0] = { type: 'search', id: 'search' }
-        placement[1] = { type: 'blank', id: 'blank' }
-        placement[2] = { type: 'plus', id: 'plus' }
-    } else if (clickedType === 'plus') {
-        // [Search, Plus, Blank]
-        placement[0] = { type: 'search', id: 'search' }
-        placement[1] = { type: 'plus', id: 'plus' }
-        placement[2] = { type: 'blank', id: 'blank' }
-    }
-
-    await nextTick()
-
-    // Animate the sliding
-    tl.from('.toolbar-item', {
-        x: (index, element) => {
-            const rect = element.getBoundingClientRect()
-            return Math.random() * 100 - 50 // Random slide effect
-        },
-        opacity: 0.7,
-        duration: 0.3,
-        stagger: 0.05,
-        ease: "power2.out"
+// Handle search submit
+function handleSearchSubmit() {
+  if (searchInput.value.trim()) {
+    emit('toolbarOperation', {
+      toolbar_operation: 'search',
+      toolbar_input: searchInput.value
     })
-
-    // Step 2: Wait 0.2 seconds then swap blank to input
-    tl.to({}, { duration: 0.2 })
-        .call(() => {
-            swapBlankToInput()
-        })
+  }
 }
 
-// Swap blank space to text input
-const swapBlankToInput = async () => {
-    // Find blank and replace with input
-    const blankIndex = placement.findIndex(item => item.type === 'blank')
-    if (blankIndex !== -1) {
-        placement[blankIndex] = { type: 'input', id: 'input' }
+// Handle add submit
+function handleAddSubmit() {
+  if (addInput.value.trim()) {
+    fileSystemStore.createCollection(addInput.value)
+    emit('toolbarOperation', {
+      toolbar_operation: 'add',
+      toolbar_input: addInput.value
+    })
+    addInput.value = ''
+    resetToDefault()
+  }
+}
+
+// Reset to default state
+function resetToDefault() {
+  state.value = 'default'
+  searchInput.value = ''
+  addInput.value = ''
+  fileSystemStore.clearSearch()
+}
+
+// Handle clicks outside toolbar (in AppHeader area)
+function handleOutsideClick(event: MouseEvent) {
+  if (toolbarRef.value && !toolbarRef.value.contains(event.target as Node)) {
+    const appHeader = toolbarRef.value.closest('.app-header')
+    if (appHeader && appHeader.contains(event.target as Node)) {
+      resetToDefault()
     }
-
-    await nextTick()
-
-    // Animate input appearance and focus
-    gsap.from('.text-input', {
-        scale: 0.8,
-        opacity: 0,
-        duration: 0.3,
-        ease: "back.out(1.7)",
-        onComplete: () => {
-            // Focus the input after animation
-            if (textInputRef.value && textInputRef.value[0]) {
-                textInputRef.value[0].focus()
-            }
-        }
-    })
+  }
 }
 
-// Animate back to default layout
-const animateToDefault = async () => {
-    if (tl) tl.kill()
+// Watch for state changes to clear inputs when returning to default
+watch(state, (newState) => {
+  if (newState === 'default') {
+    searchInput.value = ''
+    addInput.value = ''
+    fileSystemStore.clearSearch()
+  }
+})
 
-    tl = gsap.timeline()
-
-    // Animate current items out
-    tl.to('.toolbar-item', {
-        scale: 0.8,
-        opacity: 0.5,
-        duration: 0.2,
-        stagger: 0.03
-    })
-        .call(() => {
-            // Reset to default placement
-            placement[0] = { type: 'blank', id: 'blank' }
-            placement[1] = { type: 'search', id: 'search' }
-            placement[2] = { type: 'plus', id: 'plus' }
-            inputValue.value = ''
-        })
-        .to('.toolbar-item', {
-            scale: 1,
-            opacity: 1,
-            duration: 0.3,
-            stagger: 0.05,
-            ease: "back.out(1.7)"
-        })
-
-    await nextTick()
-}
-
+// Lifecycle
 onMounted(() => {
-    // Initialize GSAP
-    gsap.set('.toolbar-item', { transformOrigin: 'center center' })
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick)
 })
 </script>
 
 <style scoped>
-.app-header-area {
-    width: 100%;
-    cursor: pointer;
-}
-
 .toolbar {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 16px;
-    max-width: 400px;
-    margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: #ffffff;
+  border-radius: 0px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toolbar-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 48px;
+  transition: flex 0.3s ease-in-out;
+  overflow: hidden;
+  min-width: 0;
 }
 
-.icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    flex-shrink: 0;
+.blank {
+  cursor: pointer;
+}
+
+.icon-button {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+
+.icon-button svg {
+  fill: #333;
 }
 
 .text-input {
-    width: 100%;
-    height: 24px;
-    border: none;
-    outline: none;
-    font-size: 14px;
-    flex-grow: 1;
-}
-
-.blank-space {
-    width: 100%;
-    height: 24px;
-    opacity: 0;
-    flex-grow: 1;
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-radius: 0px;
+  padding: 0 16px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
 }
 </style>

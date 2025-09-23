@@ -31,3 +31,4 @@ coverage
 
 # Custom memo files
 *-memo.txt
+*-test.vue

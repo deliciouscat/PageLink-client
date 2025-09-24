@@ -44,7 +44,7 @@ tb_order = ToolbarOrder(
     placement: [Blank(size: 1, areaFor: "default"), search_button, Blank(size: 0, areaFor: "search"), add_button, Blank(size: 0, areaFor: "add")]  // default
     state: "default"
 )
-toolbar = dynamic HorizonalGrid(tb_order)
+toolbar = dynamic HorizontalGrid(tb_order)
 
 if `버튼이 클릭되면` :
     if last_click = "search" :

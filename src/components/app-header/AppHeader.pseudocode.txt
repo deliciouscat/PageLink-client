@@ -1,0 +1,52 @@
+# 기능
+북마크 관리 Chrome Extention의 AppHeader 영역. 메인 페이지 영역의 contents display를 제어한다.
+
+# Pseudo code
+import ToolBar.vue      // output: {toolbar_operation: "search" or "add", toolbar_input: str}
+import color_template.css
+
+Class DisplayMode(
+    Properties(
+        currentMode: str,
+        swapTo: str,
+        locale: str
+    ),
+    Functions(
+        swap: {
+            self.currentMode -> self.swapTo ; self.swapTo -> self.currentMode   // 상호교체
+        }
+    )
+)
+
+display_mode = DisplayMode(currentMode: "bookmark", swapTo: "explore", locale: config.locale)
+
+VerticalGrid(
+    HorizontalGrid(
+        Image("src/components/assets/logo.svg"),
+        IconButton("material-symbols: account_circle", color: color_template.main),
+        IconButton("material-symbols: settings", color: color_template.main),
+        BoxButton(
+            contains: Text(display_mode.swapTo),
+            onPress: () => mode_swap,
+        ),
+    ),
+    ToolBar(),
+    HorizontalLine(color: color_template.main, width: 4px)
+)
+
+# Display pages
+
+function mode_swap(){
+    구현:
+}
+
+function account_menu_display(){
+    console.log("준비중인 기능입니다.")
+}
+
+function settings_menu_display(){
+    console.log("준비중인 기능입니다.")
+}
+
+
+// 화면 구현은 `collections` 디렉토리에서 별도 모듈로 구현될 것임. `AppHeader`는 제어를 위한 것.

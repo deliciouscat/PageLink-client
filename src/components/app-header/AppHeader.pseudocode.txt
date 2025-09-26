@@ -4,12 +4,17 @@
 # Pseudo code
 import ToolBar.vue      // output: {toolbar_operation: "search" or "add", toolbar_input: str}
 import color_template.css
+import config
+import i18n
+
+config = ~      // 적절한 라이브러리로 관리
 
 Class DisplayMode(
     Properties(
         currentMode: str,
         swapTo: str,
-        locale: str
+        locale: str,
+        overlay: str or null
     ),
     Functions(
         swap: {
@@ -18,7 +23,12 @@ Class DisplayMode(
     )
 )
 
-display_mode = DisplayMode(currentMode: "bookmark", swapTo: "explore", locale: config.locale)
+display_mode = DisplayMode(
+    currentMode: "bookmark", 
+    swapTo: "explore", 
+    locale: config.locale,  // with i18n
+    overlay: null
+    )
 
 VerticalGrid(
     HorizontalGrid(
@@ -27,7 +37,9 @@ VerticalGrid(
         IconButton("material-symbols: settings", color: color_template.main),
         BoxButton(
             contains: Text(display_mode.swapTo),
-            onPress: () => mode_swap,
+            border: color_template.grey-lv2,
+            rounded: 4,
+            onPress: () => display_mode.swap,
         ),
     ),
     ToolBar(),
@@ -36,17 +48,22 @@ VerticalGrid(
 
 # Display pages
 
-function mode_swap(){
-    구현:
-}
-
 function account_menu_display(){
-    console.log("준비중인 기능입니다.")
+    console.log("준비중인 기능입니다.")    // 나중에 구현할 것임. 주석으로 '// account_menu'라고 메모해 둘 것.
+    display_mode.overlay = "account"
 }
 
 function settings_menu_display(){
-    console.log("준비중인 기능입니다.")
+    console.log("준비중인 기능입니다.")    // 나중에 구현할 것임. 주석으로 '// settings_menu'라고 메모해 둘 것.
+    display_mode.overlay = "settings"
 }
 
 
-// 화면 구현은 `collections` 디렉토리에서 별도 모듈로 구현될 것임. `AppHeader`는 제어를 위한 것.
+// 화면 구현은 `collections`, `explore-page` 디렉토리에서 별도 모듈로 구현될 것임. `AppHeader`는 제어를 위한 것.
+
+# Output 양식
+// display_mode와 ToolBar의 값을 다른 컴포넌트로 전달.
+{
+    **display_mode,
+    **ToolBar().output
+}

@@ -1,34 +1,46 @@
 /* Light Theme (Default) */
 :root {
-  --background: #FFFFFF;
-  --main: #2A4D4D;
-  --grey-lv1: #F0F5F4;
-  --grey-lv2: #C4CCCC;
+  --background: #ffffff;
+  --main: #2a4d4d;
+  --grey-lv1: #f0f5f4;
+  --grey-lv2: #c4cccc;
   --grey-lv3: #798080;
   --font-black: #333230;
-  --notification: #D13B6D;
+  --notification: #d13b6d;
 }
 
-/* Dark Theme */
+/* Force light theme if needed */
+html {
+  --background: #ffffff;
+  --main: #2a4d4d;
+  --grey-lv1: #f0f5f4;
+  --grey-lv2: #c4cccc;
+  --grey-lv3: #798080;
+  --font-black: #333230;
+  --notification: #d13b6d;
+}
+
+/* Dark Theme
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1A1A1A;
-    --main: #4FD1C7;
-    --grey-lv1: #2A2A2A;
+    --background: #1a1a1a;
+    --main: #4fd1c7;
+    --grey-lv1: #2a2a2a;
     --grey-lv2: #505050;
-    --grey-lv3: #A0A0A0;
-    --font-black: #E5E5E5;
-    --notification: #FF6B9D;
+    --grey-lv3: #a0a0a0;
+    --font-black: #e5e5e5;
+    --notification: #ff6b9d;
   }
 }
+*/
 
 /* Manual dark mode toggle */
-[data-theme="dark"] {
-  --background: #1A1A1A;
-  --main: #4FD1C7;
-  --grey-lv1: #2A2A2A;
+[data-theme='dark'] {
+  --background: #1a1a1a;
+  --main: #4fd1c7;
+  --grey-lv1: #2a2a2a;
   --grey-lv2: #505050;
-  --grey-lv3: #A0A0A0;
-  --font-black: #E5E5E5;
-  --notification: #FF6B9D;
+  --grey-lv3: #a0a0a0;
+  --font-black: #e5e5e5;
+  --notification: #ff6b9d;
 }

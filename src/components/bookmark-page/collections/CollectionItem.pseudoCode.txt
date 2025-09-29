@@ -1,0 +1,43 @@
+# 기능 개요
+북마크 관리 Chrome Extention의 링크 모음을 관리하는 컴포넌트.
+
+# Pseudo-code
+import color_template.css
+import stores/DataComponents.ts
+
+Interface LinkSystem(
+    Properties(
+        border: color_template.grey-lv2,    // fixed
+        links: List,
+    ),
+    Update(
+        self.Properties => DataComponents
+    )
+)
+
+Class Collection {inherits: BoxButton}(
+    Properties()
+)
+
+Class LinksBox {inherits: BoxButton}(
+    Properties()
+)
+
+VerticalGrid(
+    elements: [
+        HorizontalGrid(
+            elements:[
+                BoxButton(      // 이 collection에 링크 추가하는 버튼
+                    color: color_template.main,
+                    size: `20px if Collection.onPress == True, else 0px, length expansion-contraction is animated`,
+                    onPress: () => // 이 Collections의 Links에 링크 추가
+                ),
+                Collection(
+                    color:, color_template.grey-lv1 if self.onPress == True, else color_template.background,
+
+                )
+            ]
+        ),
+        Links
+    ],
+)

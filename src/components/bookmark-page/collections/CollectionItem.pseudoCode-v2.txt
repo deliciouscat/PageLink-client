@@ -1,0 +1,309 @@
+# 기능 개요
+북마크 관리 Chrome Extension의 Collection 아이템을 관리하는 컴포넌트.
+DataComponents Store와 완전히 연동되어 상태 관리와 UI 렌더링을 담당.
+Observer Pattern과 Strategy Pattern을 적용하여 확장 가능한 구조로 설계.
+
+# 디자인 패턴 적용
+## 1. Observer Pattern: Store 상태 변화 자동 감지
+## 2. Strategy Pattern: 표시 모드별 다른 렌더링 전략
+## 3. Composite Pattern: Collection-Item 계층 구조
+## 4. State Pattern: Collection의 확장/축소 상태 관리
+
+# Pseudo-code
+import color_template.css
+import stores/DataComponents.ts { useFileSystemStore, Collection, Document }
+import ToolBar.vue { toolbar_operation, toolbar_input }
+
+# =====================================
+# Strategy Pattern: 표시 모드 전략
+# =====================================
+
+Interface DisplayStrategy {
+    render(collection: Collection): UIElement
+    shouldShow(collection: Collection): boolean
+    getStyle(collection: Collection): StyleObject
+}
+
+Class NormalDisplayStrategy implements DisplayStrategy {
+    render(collection) {
+        return createCollectionUI(collection, {
+            showAddButton: collection.isExpanded,
+            showItems: collection.isExpanded,
+            opacity: collection.visible ? 1.0 : 0.3
+        })
+    }
+    
+    shouldShow(collection) { return collection.visible }
+    
+    getStyle(collection) {
+        return {
+            background: collection.isExpanded ? "var(--grey-lv1)" : "var(--background)",
+            border: "1px solid var(--grey-lv2)",
+            transition: "all 0.3s ease"
+        }
+    }
+}
+
+Class SearchDisplayStrategy implements DisplayStrategy {
+    render(collection) {
+        visibleItems = collection.getVisibleChildren()
+        return createCollectionUI(collection, {
+            showAddButton: false,
+            showItems: true,
+            highlightMatches: true,
+            itemFilter: (item) => item.visible
+        })
+    }
+    
+    shouldShow(collection) { 
+        return collection.visible || collection.getVisibleChildren().length > 0 
+    }
+    
+    getStyle(collection) {
+        return {
+            background: "var(--background)",
+            border: collection.visible ? "2px solid var(--main)" : "1px solid var(--grey-lv2)"
+        }
+    }
+}
+
+# =====================================
+# State Pattern: Collection 상태 관리
+# =====================================
+
+Interface CollectionState {
+    onPress(context: CollectionContext): void
+    render(context: CollectionContext): UIElement
+    canAddItems(): boolean
+}
+
+Class CollapsedState implements CollectionState {
+    onPress(context) {
+        context.setState(new ExpandedState())
+        context.store.selectCollection(context.collection.id)
+    }
+    
+    render(context) {
+        return {
+            height: "60px",
+            showItems: false,
+            addButtonSize: "0px"
+        }
+    }
+    
+    canAddItems() { return false }
+}
+
+Class ExpandedState implements CollectionState {
+    onPress(context) {
+        if (context.store.selectedCollectionId === context.collection.id) {
+            context.setState(new CollapsedState())
+            context.store.selectCollection(null)
+        }
+    }
+    
+    render(context) {
+        return {
+            height: "auto",
+            showItems: true,
+            addButtonSize: "20px"
+        }
+    }
+    
+    canAddItems() { return true }
+}
+
+# =====================================
+# Main Component: CollectionItem
+# =====================================
+
+Class CollectionItem {
+    Properties {
+        collection: Collection,
+        store: FileSystemStore,
+        currentState: CollectionState = new CollapsedState(),
+        displayStrategy: DisplayStrategy,
+        isAnimating: boolean = false
+    }
+    
+    Constructor(collection: Collection) {
+        this.collection = collection
+        this.store = useFileSystemStore()
+        this.updateDisplayStrategy()
+        
+        // Observer Pattern: Store 변화 감지
+        this.store.$subscribe((mutation, state) => {
+            this.onStoreChange(mutation, state)
+        })
+    }
+    
+    Functions {
+        // Strategy Pattern: 표시 모드에 따른 전략 변경
+        updateDisplayStrategy() {
+            if (this.store.isSearching) {
+                this.displayStrategy = new SearchDisplayStrategy()
+            } else {
+                this.displayStrategy = new NormalDisplayStrategy()
+            }
+        }
+        
+        // Observer Pattern: Store 상태 변화 처리
+        onStoreChange(mutation, state) {
+            if (mutation.type.includes('search')) {
+                this.updateDisplayStrategy()
+                this.forceUpdate()
+            }
+            
+            if (mutation.type === 'selectCollection') {
+                if (state.selectedCollectionId !== this.collection.id) {
+                    this.setState(new CollapsedState())
+                }
+            }
+        }
+        
+        // State Pattern: 상태 변경
+        setState(newState: CollectionState) {
+            if (this.isAnimating) return
+            
+            this.isAnimating = true
+            this.currentState = newState
+            
+            // 애니메이션 완료 후 플래그 해제
+            setTimeout(() => { this.isAnimating = false }, 300)
+        }
+        
+        // 아이템 추가 처리 (ToolBar 연동)
+        onAddItem() {
+            if (!this.currentState.canAddItems()) return
+            
+            if (this.store.isSearching) {
+                // 검색 모드에서는 검색어를 기본값으로 설정
+                defaultText = this.store.searchTerm
+            } else {
+                defaultText = ""
+            }
+            
+            // Bottom Sheet 또는 직접 입력 모달 표시
+            this.showAddItemDialog(defaultText)
+        }
+        
+        // 검색 하이라이트 처리
+        highlightSearchTerm(text: string): string {
+            if (!this.store.isSearching) return text
+            
+            searchTerm = this.store.searchTerm.toLowerCase()
+            return text.replace(
+                new RegExp(searchTerm, 'gi'), 
+                `<mark class="search-highlight">$&</mark>`
+            )
+        }
+        
+        render() {
+            if (!this.displayStrategy.shouldShow(this.collection)) {
+                return null
+            }
+            
+            stateRender = this.currentState.render(this)
+            style = this.displayStrategy.getStyle(this.collection)
+            
+            return VerticalGrid({
+                style: style,
+                elements: [
+                    // Header Row
+                    HorizontalGrid({
+                        elements: [
+                            // Add Button (조건부 표시)
+                            AnimatedButton({
+                                size: stateRender.addButtonSize,
+                                color: "var(--main)",
+                                icon: "material-symbols:add",
+                                visible: stateRender.showItems,
+                                onPress: () => this.onAddItem(),
+                                transition: "width 0.3s ease"
+                            }),
+                            
+                            // Collection Title
+                            BoxButton({
+                                flex: 1,
+                                background: style.background,
+                                border: style.border,
+                                onPress: () => this.currentState.onPress(this),
+                                children: [
+                                    Text({
+                                        content: this.highlightSearchTerm(this.collection.passage),
+                                        color: "var(--font-black)",
+                                        weight: this.collection.id === this.store.selectedCollectionId ? "bold" : "normal"
+                                    }),
+                                    
+                                    // Item Count Badge
+                                    Badge({
+                                        content: this.collection.children.length,
+                                        color: "var(--grey-lv3)",
+                                        size: "small"
+                                    })
+                                ]
+                            })
+                        ]
+                    }),
+                    
+                    // Items List (조건부 표시)
+                    AnimatedContainer({
+                        visible: stateRender.showItems,
+                        maxHeight: stateRender.showItems ? "500px" : "0px",
+                        transition: "max-height 0.3s ease",
+                        children: this.renderItems()
+                    })
+                ]
+            })
+        }
+        
+        renderItems() {
+            items = this.displayStrategy === SearchDisplayStrategy 
+                ? this.collection.getVisibleChildren() 
+                : this.collection.children
+                
+            return items.map(item => 
+                ItemComponent({
+                    item: item,
+                    highlighted: this.store.isSearching,
+                    searchTerm: this.store.searchTerm,
+                    onSelect: (item) => this.store.selectItem(item.id),
+                    onRemove: (item) => this.store.removeItem(this.collection.id, item.id)
+                })
+            )
+        }
+    }
+}
+
+# =====================================
+# CSS Classes for Animation
+# =====================================
+
+.collection-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-highlight {
+    background-color: var(--main);
+    color: var(--background);
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.add-button-enter {
+    animation: slideInFromLeft 0.3s ease;
+}
+
+.add-button-leave {
+    animation: slideOutToLeft 0.3s ease;
+}
+
+@keyframes slideInFromLeft {
+    from { width: 0px; opacity: 0; }
+    to { width: 20px; opacity: 1; }
+}
+
+@keyframes slideOutToLeft {
+    from { width: 20px; opacity: 1; }
+    to { width: 0px; opacity: 0; }
+}

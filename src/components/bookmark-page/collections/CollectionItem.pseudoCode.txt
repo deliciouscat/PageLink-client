@@ -1,5 +1,6 @@
 # 기능 개요
 북마크 관리 Chrome Extention의 링크 모음을 관리하는 컴포넌트.
+Toolbar와 연동하여 화면 내 표시 여부가 관리되어야 함. (`DataComponents`의 `visible`)
 
 # Pseudo-code
 import color_template.css
@@ -9,6 +10,7 @@ Interface LinkSystem(
     Properties(
         border: color_template.grey-lv2,    // fixed
         links: List,
+        visible: boolean
     ),
     Update(
         self.Properties => DataComponents
@@ -33,11 +35,13 @@ VerticalGrid(
                     onPress: () => // 이 Collections의 Links에 링크 추가
                 ),
                 Collection(
-                    color:, color_template.grey-lv1 if self.onPress == True, else color_template.background,
+                    color:, `color_template.grey-lv1 if self.onPress == True, else color_template.background`,
 
                 )
             ]
         ),
-        Links
+        Links(
+            visible: `True if Collection.onPress == True, else False`
+        )
     ],
 )

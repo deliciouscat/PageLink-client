@@ -174,7 +174,8 @@ onUnmounted(() => {
   gap: 8px;
   padding: 8px;
   background-color: #ffffff;
-  border-radius: 0px;
+  border-radius: 0;
+  /* Brutalism: no rounding */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -195,7 +196,8 @@ onUnmounted(() => {
   border: none;
   background-color: transparent;
   cursor: pointer;
-  border-radius: 0px;
+  border-radius: 0;
+  /* Brutalism: no rounding */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -211,7 +213,8 @@ onUnmounted(() => {
   width: 100%;
   height: 40px;
   border: none;
-  border-radius: 0px;
+  border-radius: 0;
+  /* Brutalism: no rounding */
   padding: 0 16px;
   font-size: 14px;
   outline: none;

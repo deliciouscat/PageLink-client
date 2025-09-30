@@ -142,7 +142,8 @@ defineExpose({
   height: 40px;
   border: none;
   background-color: transparent;
-  border-radius: 8px;
+  border-radius: 0;
+  /* Brutalism: no rounding */
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -158,7 +159,8 @@ defineExpose({
 .mode-toggle-button {
   padding: 8px 16px;
   border: 2px solid var(--grey-lv2);
-  border-radius: 4px;
+  border-radius: 0;
+  /* Brutalism: no rounding */
   background-color: transparent;
   color: var(--font-black);
   font-size: 14px;

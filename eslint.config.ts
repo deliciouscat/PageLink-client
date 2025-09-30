@@ -19,4 +19,11 @@ export default defineConfigWithVueTs(
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
   skipFormatting,
+
+  // Custom rules
+  {
+    rules: {
+      'vue/multi-word-component-names': 'off', // 단일 단어 컴포넌트 이름 허용
+    },
+  },
 )

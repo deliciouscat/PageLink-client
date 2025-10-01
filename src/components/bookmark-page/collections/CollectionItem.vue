@@ -22,7 +22,7 @@
       -->
       <button v-if="isExpanded" class="add-item-button" @click.stop="handleAddItem" title="링크 추가">
         <!-- 북마크 아이콘 (기본 상태) -->
-        <svg class="icon-bookmark" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20">
+        <svg class="icon-bookmark" xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16">
           <path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z" />
         </svg>
         <!-- 플러스 아이콘 (hover 상태) -->

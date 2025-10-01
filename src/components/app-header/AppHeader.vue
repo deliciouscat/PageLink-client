@@ -9,18 +9,12 @@
       <div class="control-section">
         <!-- Account Button -->
         <button class="icon-button" @click="accountMenuDisplay" title="계정">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-            <path
-              d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z" />
-          </svg>
+          <PhUserCircle :size="24" weight="bold" />
         </button>
 
         <!-- Settings Button -->
         <button class="icon-button" @click="settingsMenuDisplay" title="설정">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-            <path
-              d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-15.5t1-15.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 15.5t-1 15.5l103 78-110 190-119-50q-11 8-23 15t-24 12L590-80H370Z" />
-          </svg>
+          <PhGearFine :size="24" weight="bold" />
         </button>
 
         <!-- Mode Toggle Button -->
@@ -42,6 +36,7 @@
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ToolBar from './ToolBar.vue'
+import { PhUserCircle, PhGearFine } from '@phosphor-icons/vue'
 
 // i18n
 const { t: $t } = useI18n()
@@ -156,6 +151,11 @@ defineExpose({
   fill: var(--main);
 }
 
+.icon-button svg,
+.icon-button [data-phosphor-icon] {
+  color: var(--main);
+}
+
 .mode-toggle-button {
   padding: 8px 16px;
   border: 2px solid var(--grey-lv2);
@@ -166,6 +166,10 @@ defineExpose({
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.mode-toggle-button:hover {
+  background-color: var(--grey-lv1);
 }
 
 .horizontal-line {

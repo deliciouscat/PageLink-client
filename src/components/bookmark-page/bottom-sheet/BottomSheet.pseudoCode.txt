@@ -1,0 +1,52 @@
+# 개요
+
+
+
+# Pseudo code
+import phosphor-icons
+import CommentBox.vue   // 모듈 따로 작성
+import color_template.css
+
+nametag = String(user_nickname, color: color_template.font-black) + String(" • ", fontColor: color_template.grey-lv3) + String(epithet, fontColor: color_template.grey-lv3)
+border = VerticalGrid(
+    elements: [
+        Box(
+            fill: gradient(
+                start: color_template.background,     // below-side
+                end: transparent,   // upper-side
+                rotate: 90deg 
+            ),
+            hWidth: max,
+            vLength: 10
+        ),
+        Box(
+            fill: gradient(
+                start: color_template.background,     //below-side
+                end: color_template.grey-lv2,       //upper-side
+                rotate: 90deg
+            ),
+            hWidth: max,
+            vLength: 18
+        )
+    ]
+)
+
+separator = HorizontalGrid(
+    Padding(hWidth: 20px),
+    HorizontalLine(color: color_template.grey-lv3, width: 4px),
+    Padding(hWidth: 20px),
+)
+
+VerticalGrid(
+    elements: [
+        border,
+        HorizontalGrid(
+            elements:[
+                nametag,
+                Icon(phosphor-icons["Bold"].pencil-simple-line, color: color_template.grey-lv3)
+            ]
+        ),
+        separator,
+        CommentBox(),
+    ]
+)

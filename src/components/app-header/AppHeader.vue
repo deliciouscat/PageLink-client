@@ -159,7 +159,7 @@ defineExpose({
 .mode-toggle-button {
   padding: 8px 16px;
   border: 2px solid var(--grey-lv2);
-  border-radius: 0;
+  border-radius: 4px;
   /* Brutalism: no rounding */
   background-color: transparent;
   color: var(--font-black);

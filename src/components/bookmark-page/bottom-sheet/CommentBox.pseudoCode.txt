@@ -1,0 +1,39 @@
+# 개요
+개별 댓글을 표시하는 컴포넌트로, 확장/축소 상태를 props로 받아 처리
+
+# Pseudo-code
+Props {
+    nametag: string,
+    content: string,
+    commentId: string,
+    isExpanded: boolean,
+    onExpand: (id: string) => void
+}
+
+VerticalGrid(
+    elements: [
+        nametag,
+        Padding(vLength: 8px),
+        content,
+    ],
+    border: Property(
+        color: color_template.grey-lv2,
+        width: 1px,
+        radius: 0px,
+        ),
+    fill: Property(
+        color: color_template.grey-lv1 if hover == True else color_template.background,
+    ),
+    hWidth: max,
+    vLength: isExpanded ? "auto" : 96px,  // 확장 시 자동 높이
+    innerShadow: Property(
+        color: color_template.background,
+        x-offset: 0px,
+        y-offset: -8px
+    ),
+    
+    onPress: (event) => {
+        event.stopPropagation()  // 이벤트 버블링 방지
+        onExpand(commentId)  // 부모에게 확장 요청
+    }
+)

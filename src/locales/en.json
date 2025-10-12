@@ -1,4 +1,14 @@
 {
   "bookmark": "Bookmark",
-  "explore": "Explore"
+  "explore": "Explore",
+  "settings": "Settings",
+  "account": "Account",
+  "edit": "Edit",
+  "delete": "Delete",
+  "share": "Share",
+  "copy": "Copy",
+  "save": "Save",
+  "add": "Add",
+  "search": "Search",
+  "epithet": "Epithet"
 }

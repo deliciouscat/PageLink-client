@@ -1,4 +1,14 @@
 {
   "bookmark": "북마크",
-  "explore": "탐색하기"
+  "explore": "탐색하기",
+  "settings": "설정",
+  "account": "계정",
+  "edit": "수정",
+  "delete": "삭제",
+  "share": "공유",
+  "copy": "복사",
+  "save": "저장",
+  "add": "추가",
+  "search": "검색",
+  "epithet": "칭호"
 }

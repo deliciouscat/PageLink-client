@@ -2,6 +2,16 @@
 개별 댓글을 표시하는 컴포넌트로, 확장/축소 상태를 props로 받아 처리
 
 # Pseudo-code
+import color_template.css
+import markdown     // 프레임워크 별 적절한 markdown 라이브러리
+import katex        // 프레임워크 별 적절한 katex 라이브러리
+
+Config(
+    call: [
+        nametag, content, commentId, isExpanded, onExpand
+    ]
+)
+
 Props {
     nametag: string,
     content: string,
@@ -14,7 +24,7 @@ VerticalGrid(
     elements: [
         nametag,
         Padding(vLength: 8px),
-        content,
+        render(content, (markdown, katex)) if isExpanded else content,
     ],
     border: Property(
         color: color_template.grey-lv2,
@@ -22,11 +32,13 @@ VerticalGrid(
         radius: 0px,
         ),
     fill: Property(
+        color: color_template.background
+        ) if isExpanded else Property(
         color: color_template.grey-lv1 if hover == True else color_template.background,
     ),
     hWidth: max,
     vLength: isExpanded ? "auto" : 96px,  // 확장 시 자동 높이
-    innerShadow: Property(
+    innerShadow: Property(null) if isExpanded else Property(
         color: color_template.background,
         x-offset: 0px,
         y-offset: -8px

@@ -1,5 +1,5 @@
 # 개요
-여러 CommentBox 중 하나만 확장되도록 하는 BottomSheet 컴포넌트
+Documment(웹페이지)의 댓글을 표시하는 BottomSheet 컴포넌트.
 
 # Pseudo code
 import phosphor-icons
@@ -15,6 +15,7 @@ Config(
 // 로컬 상태 관리 (BottomSheet 컴포넌트 내부)
 State {
     expandedCommentId: string | null = null
+    isWriting: boolean = False
 }
 
 Methods {
@@ -41,6 +42,44 @@ separator = HorizontalGrid(
 dynamic_height = 24 + 64 * len(doc_comment)
 comment_box_height = Min([Max([200, dynamic_height])px, `75% of max height`])
 
+comment_box = ScrollableVerticalGrid(
+    elements: [
+        CommentBox(
+            nametag: c.nametag,
+            content: c.content,
+            commentId: c.id,
+            isExpanded: expandedCommentId === c.id,
+            onExpand: (id) => handleCommentExpand(id)
+        ) for c in doc_comment
+    ],
+    hPadding: 20px,
+    vLength: comment_box_height,
+    // ScrollableVerticalGrid 자체는 클릭 이벤트 없음 (CommentBox만 반응)
+)
+
+comment_write_box = VerticalGrid(
+    elements: [
+        ScrollableTextInputBox(
+            placeholder: "코멘트를 입력하세요."
+        ),
+        HorizontalGrid(
+            elements: [
+                Padding(hWidth: max),
+                IconButton(
+                    phosphor-icons["Bold"].paper-plane-tilt,
+                    onPress: () => {
+                        `구현: 댓글 입력 내용을 서버로 전송`
+                        isWriting = False
+                        `구현: 입력 내용 초기화`
+                        // MEMO: 전송된 내용을 어떻게 서버로 전송할지 고려해야 함. 
+                        // 상위 모듈 어디선가에서 이 모듈이 전송한 comment를 감지해야.
+                    }
+                )
+            ]
+        )
+    ]
+)
+
 VerticalGrid(
     elements: [
         Box(
@@ -56,25 +95,16 @@ VerticalGrid(
         HorizontalGrid(
             elements:[
                 nametag,
-                Icon(phosphor-icons["Bold"].pencil-simple-line, color: color_template.grey-lv3)
+                Icon(
+                    phosphor-icons["Bold"].pencil-simple-line,
+                    color: color_template.grey-lv,
+                    onPress: () => isWriting = True
+                    )
             ],
             onPress: () => handleOutsideClick()  // 헤더 영역 클릭
         ),
         separator,
-        ScrollableVerticalGrid(
-            elements: [
-                CommentBox(
-                    nametag: c.nametag,
-                    content: c.content,
-                    commentId: c.id,
-                    isExpanded: expandedCommentId === c.id,
-                    onExpand: (id) => handleCommentExpand(id)
-                ) for c in doc_comment
-            ],
-            hPadding: 20px,
-            vLength: comment_box_height,
-            // ScrollableVerticalGrid 자체는 클릭 이벤트 없음 (CommentBox만 반응)
-        ),
+        comment_write_box if isWriting else comment_box
     ],
     shadow: Property(   // 위쪽 그림자 방향
         color: color_template.background,

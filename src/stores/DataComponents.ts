@@ -107,6 +107,7 @@ export class Collection implements FileSystem {
   }
 
   // 특정 타입의 아이템만 가져오기
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getItemsByType<T extends LeafNode>(type: new (...args: any[]) => T): T[] {
     return this.children.filter((child) => child instanceof type) as T[]
   }
@@ -360,3 +361,168 @@ export const useFileSystemStore = defineStore('fileSystem', () => {
 // Type exports for component usage
 export type { FileSystem }
 export type { LeafNode }
+
+// ===========================
+// 3. 댓글 시스템
+// ===========================
+
+// Comment 인터페이스
+export interface Comment {
+  id: string
+  nametag: string
+  content: string
+  createdAt: Date
+}
+
+// DocumentComments 인터페이스 (URL별 댓글 관리)
+export interface DocumentComments {
+  url: string
+  comments: Comment[]
+}
+
+// 댓글 Store
+export const useCommentsStore = defineStore('comments', () => {
+  // State: URL별 댓글 저장
+  const documentComments = ref<Map<string, Comment[]>>(new Map())
+
+  // 현재 사용자 정보 (임시)
+  const currentUser = ref({
+    nickname: '사용자',
+    epithet: '개발자',
+  })
+
+  // Computed: 특정 URL의 댓글 가져오기
+  function getComments(url: string): Comment[] {
+    return documentComments.value.get(url) || []
+  }
+
+  // Computed: 현재 사용자의 nametag
+  const currentUserNametag = computed(() => {
+    return `${currentUser.value.nickname} • ${currentUser.value.epithet}`
+  })
+
+  // Actions: 댓글 추가
+  function addComment(url: string, content: string): Comment {
+    const comment: Comment = {
+      id: generateId(),
+      nametag: currentUserNametag.value,
+      content,
+      createdAt: new Date(),
+    }
+
+    const comments = documentComments.value.get(url) || []
+    comments.push(comment)
+    documentComments.value.set(url, comments)
+
+    return comment
+  }
+
+  // Actions: 댓글 삭제
+  function removeComment(url: string, commentId: string): boolean {
+    const comments = documentComments.value.get(url)
+    if (!comments) return false
+
+    const index = comments.findIndex((c) => c.id === commentId)
+    if (index > -1) {
+      comments.splice(index, 1)
+      return true
+    }
+    return false
+  }
+
+  // Actions: 샘플 댓글 데이터 생성
+  function generateSampleComments(): void {
+    // localhost:5173 댓글
+    const localhostComments: Comment[] = [
+      {
+        id: generateId(),
+        nametag: '개발자A • 프론트엔드',
+        content:
+          '이 페이지의 UI가 정말 깔끔하네요! Vue 3 Composition API를 사용하신 것 같은데 코드 구조가 인상적입니다.',
+        createdAt: new Date('2025-10-15T10:30:00'),
+      },
+      {
+        id: generateId(),
+        nametag: '디자이너B • UX/UI',
+        content:
+          '색상 조합이 마음에 듭니다. 특히 `color_template.css`의 그레이 레벨 구분이 좋아요.\n\n**개선 제안:**\n- 버튼 호버 효과를 조금 더 명확하게\n- 모바일 반응형 고려',
+        createdAt: new Date('2025-10-16T14:20:00'),
+      },
+      {
+        id: generateId(),
+        nametag: '개발자C • 백엔드',
+        content:
+          '# API 연동 관련\n\n댓글 시스템 구현 시 다음 엔드포인트를 사용하세요:\n\n```javascript\nPOST /api/comments\nGET /api/comments/:documentId\nDELETE /api/comments/:commentId\n```\n\n인증은 JWT 토큰 방식입니다.',
+        createdAt: new Date('2025-10-17T09:15:00'),
+      },
+    ]
+
+    // naver.com 댓글
+    const naverComments: Comment[] = [
+      {
+        id: generateId(),
+        nametag: '사용자D • 일반',
+        content: '네이버 메인 페이지는 항상 정보가 풍부하네요. 뉴스 섹션이 특히 유용합니다.',
+        createdAt: new Date('2025-10-16T08:00:00'),
+      },
+      {
+        id: generateId(),
+        nametag: '마케터E • 디지털 마케팅',
+        content:
+          '네이버의 검색 알고리즘이 최근 업데이트된 것 같아요. SEO 전략을 다시 검토해야겠습니다.\n\n참고: [네이버 검색 가이드](https://searchadvisor.naver.com/)',
+        createdAt: new Date('2025-10-17T11:45:00'),
+      },
+    ]
+
+    // google.com 댓글
+    const googleComments: Comment[] = [
+      {
+        id: generateId(),
+        nametag: '연구원F • AI/ML',
+        content:
+          '구글의 새로운 Gemini 모델이 정말 인상적입니다!\n\n## 주요 특징\n1. 멀티모달 처리\n2. 긴 컨텍스트 지원\n3. 빠른 응답 속도\n\n수식 예시: \\(E = mc^2\\)',
+        createdAt: new Date('2025-10-15T16:30:00'),
+      },
+      {
+        id: generateId(),
+        nametag: '개발자G • 풀스택',
+        content:
+          'Google Cloud Platform의 무료 티어를 활용하면 소규모 프로젝트 배포가 편리합니다. Firebase도 함께 사용하면 좋아요.',
+        createdAt: new Date('2025-10-16T13:20:00'),
+      },
+      {
+        id: generateId(),
+        nametag: '학생H • 컴퓨터공학',
+        content:
+          '구글 검색 팁을 공유합니다:\n\n- `site:` 연산자로 특정 사이트 내 검색\n- `filetype:pdf` 로 PDF 파일만 검색\n- 따옴표로 정확한 구문 검색\n\n매우 유용해요!',
+        createdAt: new Date('2025-10-18T07:00:00'),
+      },
+    ]
+
+    // Map에 저장
+    documentComments.value.set('http://localhost:5173/', localhostComments)
+    documentComments.value.set('https://www.naver.com/', naverComments)
+    documentComments.value.set('https://www.google.com/', googleComments)
+  }
+
+  // Actions: 초기화
+  function resetComments(): void {
+    documentComments.value.clear()
+  }
+
+  return {
+    // State
+    documentComments,
+    currentUser,
+
+    // Computed
+    currentUserNametag,
+
+    // Actions
+    getComments,
+    addComment,
+    removeComment,
+    generateSampleComments,
+    resetComments,
+  }
+})

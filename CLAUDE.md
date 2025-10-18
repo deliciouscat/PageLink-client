@@ -18,35 +18,51 @@ Codes in this project are maintained/edited in `*.pseudoCode.txt` domain, which 
 - Core and abstractive form for human-readability
 - Specify properties exchanged with other modules
 
-## Development Commands
-
-```bash
-# Install dependencies
-npm install
-
-# Development server with hot-reload
-npm run dev
-
-# Type checking
-npm run type-check
-
-# Build for production (runs type-check + build-only)
-npm run build
-
-# Build without type checking
-npm run build-only
-
-# Lint and auto-fix
-npm run lint
-
-# Format code
-npm run format
-
-# Preview production build
-npm run preview
-```
-
 ## Architecture
+
+```
+src
+├── App.pseudoCode.txt
+├── App.vue
+├── TestAppHeader-test.vue
+├── TestToolBar-test.vue
+├── components
+│   ├── app-header
+│   │   ├── AppHeader.pseudocode.txt
+│   │   ├── AppHeader.vue
+│   │   ├── ToolBar.pseudoCode.txt
+│   │   └── ToolBar.vue
+│   ├── assets
+│   │   └── logo.svg
+│   ├── bookmark-page
+│   │   ├── BookmarkPage.vue
+│   │   ├── DEPENDENCY_ANALYSIS.md
+│   │   ├── bottom-sheet
+│   │   │   ├── BottomSheet.pseudoCode.txt
+│   │   │   ├── BottomSheet.vue
+│   │   │   ├── CommentBox.pseudoCode.txt
+│   │   │   └── CommentBox.vue
+│   │   └── collections
+│   │       ├── CollectionItem.pseudoCode-v2.txt
+│   │       ├── CollectionItem.pseudoCode.txt
+│   │       ├── CollectionItem.vue
+│   │       ├── Collections.pseudoCode.txt
+│   │       └── Collections.vue
+│   └── explore-page
+│       └── ExplorePage.vue
+├── i18n.ts
+├── locales
+│   ├── en.json
+│   ├── ja.json
+│   └── ko.json
+├── main.ts
+├── stores
+│   ├── DataComponents-memo.txt
+│   ├── DataComponents.pseudoCode.txt
+│   └── DataComponents.ts
+└── styles
+    └── color_template.css
+```
 
 ### Component Hierarchy
 

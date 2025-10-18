@@ -20,10 +20,11 @@
  * - toolbarOperation 이벤트는 로깅만 (Store에서 직접 처리)
  */
 
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import AppHeader from '@/components/app-header/AppHeader.vue'
 import BookmarkPage from '@/components/bookmark-page/BookmarkPage.vue'
 import ExplorePage from '@/components/explore-page/ExplorePage.vue'
+import { useFileSystemStore, useCommentsStore } from '@/stores/DataComponents'
 
 // ==================== State ====================
 /**
@@ -32,6 +33,26 @@ import ExplorePage from '@/components/explore-page/ExplorePage.vue'
  * - 'explore': 탐색 페이지
  */
 const currentMode = ref<'bookmark' | 'explore'>('bookmark')
+
+// ==================== Store Initialization ====================
+/**
+ * 샘플 데이터 초기화
+ * - 앱 시작 시 샘플 북마크 및 댓글 데이터 생성
+ */
+const fileSystemStore = useFileSystemStore()
+const commentsStore = useCommentsStore()
+
+onMounted(() => {
+  // 샘플 북마크 데이터 생성
+  if (fileSystemStore.collections.length === 0) {
+    fileSystemStore.generateSampleData()
+  }
+
+  // 샘플 댓글 데이터 생성
+  if (commentsStore.documentComments.size === 0) {
+    commentsStore.generateSampleComments()
+  }
+})
 
 // ==================== Event Handlers ====================
 /**
@@ -121,6 +142,9 @@ function handleToolbarOperation(payload: {
 /* Color 템플릿 import */
 @import '@/styles/color_template.css';
 
+/* KaTeX 스타일 import */
+@import 'katex/dist/katex.min.css';
+
 /* 모든 요소 리셋 */
 * {
   margin: 0;
@@ -141,15 +165,20 @@ function handleToolbarOperation(payload: {
   background-color: var(--background);
   color: var(--font-black);
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   /* 전체 뷰포트 높이 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Main Content Area */
 .main-content {
   width: 100%;
-  min-height: calc(100vh - 120px);
-  /* AppHeader 높이 제외 */
+  flex: 1;
+  min-height: 0;
+  /* flex 자식이 overflow 되도록 */
+  overflow: hidden;
 }
 
 /* Error State (잘못된 디스플레이 모드) */

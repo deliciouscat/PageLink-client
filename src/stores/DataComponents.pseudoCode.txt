@@ -2,6 +2,33 @@
 # 계층적 북마크 관리 시스템 - Composite Pattern 기반
 
 # ===========================
+# 0. 샘플 데이터 타입 정의
+# ===========================
+
+Interface SampleDocument(
+    Properties(
+        passage: string,
+        tags: list[string],
+        url: string
+    )
+)
+
+Interface SampleCollection(
+    Properties(
+        name: string,
+        documents: list[SampleDocument]
+    )
+)
+
+Interface SampleCommentData(
+    Properties(
+        nametag: string,
+        content: string,
+        createdAt: string (ISO 8601 형식)
+    )
+)
+
+# ===========================
 # 1. 공통 인터페이스 정의
 # ===========================
 
@@ -69,16 +96,19 @@ Class Document {extends: LeafNode}(
         passage: string (inherited),
         visible: boolean (inherited),
         createdAt: DateTime (inherited),
-        tags: list[string]
+        tags: list[string],
+        url: string
     ),
     
     Constructor(
         Input: 
             - passage: string
             - tags: list[string] (기본값: 빈 배열)
+            - url: string (기본값: 빈 문자열)
         Logic:
             - 부모 생성자 호출(passage)
             - this.tags = tags
+            - this.url = url
     )
 )
 
@@ -229,11 +259,12 @@ Store FileSystemStore(
                 selectedItemId 초기화 (null)
         },
         
-        addDocument(collectionId: string, passage: string, tags: list[string]) -> Document? {
+        addDocument(collectionId: string, passage: string, tags: list[string], url: string) -> Document? {
             Input: 
                 - collectionId: 대상 컬렉션 ID
                 - passage: 문서 내용
                 - tags: 태그 배열 (기본값: 빈 배열)
+                - url: 문서 URL (기본값: 빈 문자열)
             Output: 생성된 Document 또는 null
             Logic:
                 해당 컬렉션 찾기
@@ -315,15 +346,108 @@ Store FileSystemStore(
             Input: 없음
             Output: 없음
             Logic:
-                테스트용 샘플 컬렉션과 문서들 생성
-                - 뉴스, 기술 문서, 프로젝트 문서 컬렉션
-                - 각 컬렉션에 태그가 있는 문서들 추가
+                sampleData.json 파일에서 샘플 데이터 로드
+                FOR EACH collectionData IN sampleDataJson.collections:
+                    collection = createCollection(collectionData.name)
+                    FOR EACH docData IN collectionData.documents:
+                        addDocument(collection.id, docData.passage, docData.tags, docData.url)
         }
     )
 )
 
 # ===========================
-# 6. 핵심 설계 원칙
+# 6. 댓글 시스템
+# ===========================
+
+Interface Comment(
+    Properties(
+        id: string,
+        nametag: string,
+        content: string,
+        createdAt: DateTime
+    )
+)
+
+Interface DocumentComments(
+    Properties(
+        url: string,
+        comments: list[Comment]
+    )
+)
+
+Store CommentsStore(
+    State(
+        documentComments: Map<string, list[Comment]> = new Map(),
+        currentUser: object = {
+            nickname: '사용자',
+            epithet: '개발자'
+        }
+    ),
+    
+    Computed(
+        currentUserNametag() -> string {
+            Output: 현재 사용자의 nametag
+            Logic: "${currentUser.nickname} • ${currentUser.epithet}"
+        }
+    ),
+    
+    Actions(
+        getComments(url: string) -> list[Comment] {
+            Input: url - 댓글을 가져올 URL
+            Output: 해당 URL의 댓글 배열
+            Logic: documentComments에서 url에 해당하는 댓글 반환 (없으면 빈 배열)
+        },
+        
+        addComment(url: string, content: string) -> Comment {
+            Input:
+                - url: 댓글을 추가할 URL
+                - content: 댓글 내용
+            Output: 생성된 Comment
+            Logic:
+                새 Comment 객체 생성 (id, nametag, content, createdAt)
+                해당 URL의 댓글 배열에 추가
+                documentComments Map 업데이트
+                생성된 Comment 반환
+        },
+        
+        removeComment(url: string, commentId: string) -> boolean {
+            Input:
+                - url: 댓글이 있는 URL
+                - commentId: 삭제할 댓글 ID
+            Output: 삭제 성공 여부
+            Logic:
+                해당 URL의 댓글 배열에서 commentId로 찾아서 제거
+                성공 여부 반환
+        },
+        
+        generateSampleComments() -> void {
+            Input: 없음
+            Output: 없음
+            Logic:
+                sampleComments.json 파일에서 샘플 댓글 데이터 로드
+                FOR EACH [url, comments] IN sampleCommentsJson.comments:
+                    commentsList = []
+                    FOR EACH commentData IN comments:
+                        comment = {
+                            id: generateId(),
+                            nametag: commentData.nametag,
+                            content: commentData.content,
+                            createdAt: new Date(commentData.createdAt)
+                        }
+                        commentsList.push(comment)
+                    documentComments.set(url, commentsList)
+        },
+        
+        resetComments() -> void {
+            Input: 없음
+            Output: 없음
+            Logic: documentComments Map 초기화
+        }
+    )
+)
+
+# ===========================
+# 7. 핵심 설계 원칙
 # ===========================
 
 Design Patterns Used:
@@ -338,6 +462,8 @@ Key Features:
 - 타입 안전성을 고려한 제네릭 메서드
 - 컬렉션 간 아이템 이동 지원
 - 상태 관리와 UI 로직 분리
+- JSON 파일 기반 샘플 데이터 관리 (데이터와 로직 분리)
+- URL별 댓글 관리 시스템
 
 Search Algorithm:
 1. 검색어가 없으면 모든 항목 visible = true
@@ -345,3 +471,38 @@ Search Algorithm:
    - Document: 자신의 passage에 검색어 포함 여부로 visible 결정
    - Collection: 자신의 passage 매칭 OR 하나 이상의 child가 visible이면 visible = true
 3. 상위에서 하위로 재귀적으로 visible 상태 전파
+
+# ===========================
+# 8. 데이터 파일 구조
+# ===========================
+
+File: src/data/sampleData.json
+Structure:
+{
+  "collections": [
+    {
+      "name": "컬렉션 이름",
+      "documents": [
+        {
+          "url": "문서 URL",
+          "passage": "문서 내용",
+          "tags": ["태그1", "태그2"]
+        }
+      ]
+    }
+  ]
+}
+
+File: src/data/sampleComments.json
+Structure:
+{
+  "comments": {
+    "URL": [
+      {
+        "nametag": "사용자명 • 역할",
+        "content": "댓글 내용 (마크다운 지원)",
+        "createdAt": "ISO 8601 날짜 문자열"
+      }
+    ]
+  }
+}

@@ -1,9 +1,29 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import sampleDataJson from '@/data/sampleData.json'
+import sampleCommentsJson from '@/data/sampleComments.json'
 
 // ===========================
 // 1. 인터페이스 & 클래스 정의
 // ===========================
+
+// 샘플 데이터 타입 정의
+interface SampleDocument {
+  passage: string
+  tags: string[]
+  url: string
+}
+
+interface SampleCollection {
+  name: string
+  documents: SampleDocument[]
+}
+
+interface SampleCommentData {
+  nametag: string
+  content: string
+  createdAt: string
+}
 
 // FileSystem 인터페이스 정의
 interface FileSystem {
@@ -45,10 +65,12 @@ abstract class LeafNode implements FileSystem {
 // Document 클래스
 export class Document extends LeafNode {
   tags: string[]
+  url: string
 
-  constructor(passage: string, tags: string[] = []) {
+  constructor(passage: string, tags: string[] = [], url: string = '') {
     super(passage)
     this.tags = tags
+    this.url = url
   }
 }
 
@@ -192,10 +214,11 @@ export const useFileSystemStore = defineStore('fileSystem', () => {
     collectionId: string,
     passage: string,
     tags: string[] = [],
+    url: string = '',
   ): Document | null {
     const collection = collections.value.find((col) => col.id === collectionId)
     if (collection) {
-      const doc = new Document(passage, tags)
+      const doc = new Document(passage, tags, url)
       collection.addItem(doc)
       // 현재 검색 중이면 visible 상태 업데이트
       if (searchTerm.value) {
@@ -291,38 +314,13 @@ export const useFileSystemStore = defineStore('fileSystem', () => {
 
   // Actions - 샘플 데이터 생성
   function generateSampleData(): void {
-    // 컬렉션 생성
-    const newsCollection = createCollection('뉴스')
-    const techCollection = createCollection('기술 문서')
-    const projectCollection = createCollection('프로젝트 문서')
-
-    // 뉴스 컬렉션에 아이템 추가
-    addDocument(newsCollection.id, 'Vue 3.4 버전이 릴리즈되었습니다. 성능이 크게 개선되었습니다.', [
-      'vue',
-      'frontend',
-      'news',
-    ])
-    addDocument(newsCollection.id, 'TypeScript 5.0의 새로운 기능들을 소개합니다.', [
-      'typescript',
-      'programming',
-    ])
-    addDocument(newsCollection.id, 'React 19 베타 버전 출시 소식', ['react', 'frontend', 'news'])
-
-    // 기술 문서 컬렉션
-    addDocument(techCollection.id, 'Composite Pattern은 트리 구조를 표현하는 디자인 패턴입니다.', [
-      'design-pattern',
-      'programming',
-    ])
-    addDocument(techCollection.id, 'Pinia는 Vue 3를 위한 상태 관리 라이브러리입니다.', [
-      'vue',
-      'state-management',
-    ])
-    addDocument(techCollection.id, 'Clean Code 원칙과 실천 방법', ['best-practice', 'programming'])
-
-    // 프로젝트 문서 컬렉션
-    addDocument(projectCollection.id, 'API 설계 문서 v2.0', ['api', 'backend'])
-    addDocument(projectCollection.id, '프론트엔드 컴포넌트 가이드라인', ['frontend', 'guide'])
-    addDocument(projectCollection.id, '데이터베이스 스키마 설계서', ['database', 'backend'])
+    // JSON 파일에서 샘플 데이터 로드
+    sampleDataJson.collections.forEach((collectionData: SampleCollection) => {
+      const collection = createCollection(collectionData.name)
+      collectionData.documents.forEach((docData: SampleDocument) => {
+        addDocument(collection.id, docData.passage, docData.tags, docData.url)
+      })
+    })
   }
 
   return {
@@ -432,77 +430,16 @@ export const useCommentsStore = defineStore('comments', () => {
 
   // Actions: 샘플 댓글 데이터 생성
   function generateSampleComments(): void {
-    // localhost:5173 댓글
-    const localhostComments: Comment[] = [
-      {
+    // JSON 파일에서 샘플 댓글 데이터 로드
+    Object.entries(sampleCommentsJson.comments).forEach(([url, comments]) => {
+      const commentsList: Comment[] = comments.map((commentData: SampleCommentData) => ({
         id: generateId(),
-        nametag: '개발자A • 프론트엔드',
-        content:
-          '이 페이지의 UI가 정말 깔끔하네요! Vue 3 Composition API를 사용하신 것 같은데 코드 구조가 인상적입니다.',
-        createdAt: new Date('2025-10-15T10:30:00'),
-      },
-      {
-        id: generateId(),
-        nametag: '디자이너B • UX/UI',
-        content:
-          '색상 조합이 마음에 듭니다. 특히 `color_template.css`의 그레이 레벨 구분이 좋아요.\n\n**개선 제안:**\n- 버튼 호버 효과를 조금 더 명확하게\n- 모바일 반응형 고려',
-        createdAt: new Date('2025-10-16T14:20:00'),
-      },
-      {
-        id: generateId(),
-        nametag: '개발자C • 백엔드',
-        content:
-          '# API 연동 관련\n\n댓글 시스템 구현 시 다음 엔드포인트를 사용하세요:\n\n```javascript\nPOST /api/comments\nGET /api/comments/:documentId\nDELETE /api/comments/:commentId\n```\n\n인증은 JWT 토큰 방식입니다.',
-        createdAt: new Date('2025-10-17T09:15:00'),
-      },
-    ]
-
-    // naver.com 댓글
-    const naverComments: Comment[] = [
-      {
-        id: generateId(),
-        nametag: '사용자D • 일반',
-        content: '네이버 메인 페이지는 항상 정보가 풍부하네요. 뉴스 섹션이 특히 유용합니다.',
-        createdAt: new Date('2025-10-16T08:00:00'),
-      },
-      {
-        id: generateId(),
-        nametag: '마케터E • 디지털 마케팅',
-        content:
-          '네이버의 검색 알고리즘이 최근 업데이트된 것 같아요. SEO 전략을 다시 검토해야겠습니다.\n\n참고: [네이버 검색 가이드](https://searchadvisor.naver.com/)',
-        createdAt: new Date('2025-10-17T11:45:00'),
-      },
-    ]
-
-    // google.com 댓글
-    const googleComments: Comment[] = [
-      {
-        id: generateId(),
-        nametag: '연구원F • AI/ML',
-        content:
-          '구글의 새로운 Gemini 모델이 정말 인상적입니다!\n\n## 주요 특징\n1. 멀티모달 처리\n2. 긴 컨텍스트 지원\n3. 빠른 응답 속도\n\n수식 예시: \\(E = mc^2\\)',
-        createdAt: new Date('2025-10-15T16:30:00'),
-      },
-      {
-        id: generateId(),
-        nametag: '개발자G • 풀스택',
-        content:
-          'Google Cloud Platform의 무료 티어를 활용하면 소규모 프로젝트 배포가 편리합니다. Firebase도 함께 사용하면 좋아요.',
-        createdAt: new Date('2025-10-16T13:20:00'),
-      },
-      {
-        id: generateId(),
-        nametag: '학생H • 컴퓨터공학',
-        content:
-          '구글 검색 팁을 공유합니다:\n\n- `site:` 연산자로 특정 사이트 내 검색\n- `filetype:pdf` 로 PDF 파일만 검색\n- 따옴표로 정확한 구문 검색\n\n매우 유용해요!',
-        createdAt: new Date('2025-10-18T07:00:00'),
-      },
-    ]
-
-    // Map에 저장
-    documentComments.value.set('http://localhost:5173/', localhostComments)
-    documentComments.value.set('https://www.naver.com/', naverComments)
-    documentComments.value.set('https://www.google.com/', googleComments)
+        nametag: commentData.nametag,
+        content: commentData.content,
+        createdAt: new Date(commentData.createdAt),
+      }))
+      documentComments.value.set(url, commentsList)
+    })
   }
 
   // Actions: 초기화

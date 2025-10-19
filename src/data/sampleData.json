@@ -1,0 +1,64 @@
+{
+  "collections": [
+    {
+      "name": "뉴스",
+      "documents": [
+        {
+          "url": "https://blog.vuejs.org/posts/vue-3-4",
+          "passage": "Vue 3.4 버전이 릴리즈되었습니다. 성능이 크게 개선되었습니다.",
+          "tags": ["vue", "frontend", "news"]
+        },
+        {
+          "url": "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-0.html",
+          "passage": "TypeScript 5.0의 새로운 기능들을 소개합니다.",
+          "tags": ["typescript", "programming"]
+        },
+        {
+          "url": "https://react.dev/blog/2025/09/26/react-19-beta-release",
+          "passage": "React 19 베타 버전 출시 소식",
+          "tags": ["react", "frontend", "news"]
+        }
+      ]
+    },
+    {
+      "name": "기술 문서",
+      "documents": [
+        {
+          "url": "https://refactoring.guru/design-patterns/composite",
+          "passage": "Composite Pattern은 트리 구조를 표현하는 디자인 패턴입니다.",
+          "tags": ["design-pattern", "programming"]
+        },
+        {
+          "url": "https://pinia.vuejs.org/introduction",
+          "passage": "Pinia는 Vue 3를 위한 상태 관리 라이브러리입니다.",
+          "tags": ["vue", "state-management"]
+        },
+        {
+          "url": "https://clean-code-developer.tistory.com/120",
+          "passage": "Clean Code 원칙과 실천 방법",
+          "tags": ["best-practice", "programming"]
+        }
+      ]
+    },
+    {
+      "name": "프로젝트 문서",
+      "documents": [
+        {
+          "url": "https://api.example.com/v2.0/openapi.yaml",
+          "passage": "API 설계 문서 v2.0",
+          "tags": ["api", "backend"]
+        },
+        {
+          "url": "https://frontend-guide.com/components",
+          "passage": "프론트엔드 컴포넌트 가이드라인",
+          "tags": ["frontend", "guide"]
+        },
+        {
+          "url": "https://database-schema.com/design",
+          "passage": "데이터베이스 스키마 설계서",
+          "tags": ["database", "backend"]
+        }
+      ]
+    }
+  ]
+}

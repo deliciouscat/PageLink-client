@@ -200,15 +200,19 @@ function handleCollectionClick() {
 /**
  * 아이템(링크) 클릭 핸들러
  * - Store에 선택 상태 저장
- * - TODO: Chrome Extension API로 실제 링크 열기 구현 필요
+ * - Document의 url이 있으면 새 탭에서 열기
  *
  * @param {LeafNode} item - 클릭된 아이템 (Document 또는 다른 LeafNode 타입)
  */
 function handleItemClick(item: LeafNode) {
   fileSystemStore.selectItem(item.id)
-  console.log('Item selected:', item.passage)
-  // TODO: 실제 링크 열기 구현
-  // chrome.tabs.create({ url: item.passage })
+
+  // Document 타입이고 url이 있으면 새 탭에서 열기
+  if (item instanceof Document && item.url) {
+    window.open(item.url, '_blank', 'noopener,noreferrer')
+  } else {
+    console.log('Item selected:', item.passage)
+  }
 }
 
 /**

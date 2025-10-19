@@ -1,6 +1,13 @@
 # 기능 개요
-북마크 관리 Chrome Extention의 링크 모음을 관리하는 컴포넌트.
+북마크 관리 Chrome Extension의 링크 모음을 관리하는 컴포넌트.
 Toolbar와 연동하여 화면 내 표시 여부가 관리되어야 함. (`DataComponents`의 `visible`)
+
+# 주요 기능
+- Collection(폴더) 확장/축소
+- Document(링크) 표시 및 관리
+- 링크 클릭 시 새 탭에서 열기 (Document.url 사용)
+- 검색어 하이라이트
+- 아이템 추가/삭제
 
 # Pseudo-code
 import color_template.css
@@ -25,23 +32,73 @@ Class LinksBox {inherits: BoxButton}(
     Properties()
 )
 
+# Event Handlers
+Function handleItemClick(item: LeafNode) {
+    Input: item - 클릭된 Document 또는 LeafNode
+    Output: 없음
+    Logic:
+        // Store에 선택 상태 저장
+        fileSystemStore.selectItem(item.id)
+        
+        // Document 타입이고 url이 있으면 새 탭에서 열기
+        IF item instanceof Document AND item.url is not empty:
+            window.open(item.url, '_blank', 'noopener,noreferrer')
+        ELSE:
+            console.log('Item selected:', item.passage)
+}
+
+Function handleCollectionClick() {
+    Input: 없음
+    Output: 없음
+    Logic:
+        IF isExpanded AND isSelected:
+            // 이미 선택되고 확장된 상태면 축소
+            isExpanded = false
+            fileSystemStore.selectCollection(null)
+        ELSE:
+            // 확장 및 선택
+            isExpanded = true
+            fileSystemStore.selectCollection(collection.id)
+}
+
+Function handleAddItem() {
+    Input: 없음
+    Output: 없음
+    Logic:
+        url = prompt('추가할 링크 URL을 입력하세요:')
+        IF url is not empty:
+            fileSystemStore.addDocument(collection.id, url.trim())
+}
+
+Function handleRemoveItem(item: LeafNode) {
+    Input: item - 삭제할 아이템
+    Output: 없음
+    Logic:
+        IF confirm('이 아이템을 삭제하시겠습니까?'):
+            fileSystemStore.removeItem(collection.id, item.id)
+}
+
+# UI Structure
 VerticalGrid(
     elements: [
         HorizontalGrid(
             elements:[
                 BoxButton(      // 이 collection에 링크 추가하는 버튼
                     color: color_template.main,
-                    size: `20px if Collection.onPress == True, else 0px, length expansion-contraction is animated`,
-                    onPress: () => // 이 Collections의 Links에 링크 추가
+                    size: `24px if Collection.isExpanded == True, else 0px, animated`,
+                    onPress: handleAddItem
                 ),
                 Collection(
-                    color:, `color_template.grey-lv1 if self.onPress == True, else color_template.background`,
-
+                    color: `color_template.grey-lv1 if self.isExpanded == True, else color_template.background`,
+                    onPress: handleCollectionClick
                 )
             ]
         ),
         Links(
-            visible: `True if Collection.onPress == True, else False`
+            visible: `True if Collection.isExpanded == True, else False`,
+            items: displayItems,
+            onItemClick: handleItemClick,
+            onItemRemove: handleRemoveItem
         )
     ],
 )

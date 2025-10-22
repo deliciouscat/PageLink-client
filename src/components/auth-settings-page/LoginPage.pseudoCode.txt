@@ -1,0 +1,21 @@
+# 개요
+Clerk를 사용한 로그인 페이지 컴포넌트.
+커스터마이제이션 예시: https://clerk.com/blog/how-we-roll-customization
+
+# Pseudo-code
+
+from clerk/vue import {
+    SignInButton,
+    UserButton,
+    useUser,
+    useAuth
+    }
+
+Properties(
+    // 필요한거
+)
+
+
+VerticalGrid(
+    elements: [],
+)

@@ -1,0 +1,27 @@
+# 개요
+Clerk를 사용하여 유저 정보를 표시하는 컴포넌트.
+로그인 중엔 SignedIn 영역, 로그아웃 중엔 SignedOut 영역을 표시.
+
+# Pseudo-code
+
+import DataComponents.ts
+import LoginPage.vue
+import MyPage.vue
+from clerk/vue import {
+    SignedIn,
+    SignedOut,
+    useAuth
+    }
+
+Properties(
+    loggedIn: boolean = default(false),     // DataComponents 또는 Clerk에서 가져와야 함
+    user: User,
+)
+
+<SignedIn>
+    MyPage(user)
+</SignedIn>
+
+<SignedOut>
+    LoginPage()
+</SignedOut>

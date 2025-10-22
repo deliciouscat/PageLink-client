@@ -163,7 +163,7 @@ function handleCancelWrite() {
   width: 100%;
   background-color: var(--background);
   border-radius: 0;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -12px 16px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 

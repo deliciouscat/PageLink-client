@@ -4,6 +4,7 @@ Clerk를 사용한 로그인 페이지 컴포넌트.
 
 # Pseudo-code
 
+import SignupTermsModal.vue
 from clerk/vue import {
     SignInButton,
     UserButton,
@@ -12,10 +13,77 @@ from clerk/vue import {
     }
 
 Properties(
-    // 필요한거
+    publishableKey: string,     // ClerkProvider
+    appearance: object,     // ClerkProvider
+    // 이 외 필요한거
 )
+
+underline_theme = {
+    width: 2px,
+    color: {
+        default: color_template.grey-lv3,
+        onTyping: color_template.main,
+    },
+}
+
+textbox_theme = {
+    color: {
+        default: color_template.grey-lv3,
+        onTyping: color_template.font-black,
+    }
+}
 
 
 VerticalGrid(
-    elements: [],
+    elements: [
+        Text(i18n.t("sign_in"), fontColor: color_template.font-black),
+        ClerkGoogleButton(),
+        ClerkFacebookButton(),
+        ClerkNotionButton(),
+        Text(i18n.t("or"), fontColor: color_template.font-black),
+        HorizontalGrid(
+            elements: [
+                Icon(phosphor-icons["Bold"].envelope-simple, **textbox_theme),
+                TextInput(
+                    placeholder: i18n.t("Sign in with email"), 
+                    **textbox_theme,
+                ),
+            ],
+            underline: **underline_theme,
+        ),
+        HorizontalGrid(
+            elements: [
+                Icon(phosphor-icons["Bold"].key, **textbox_theme),
+                TextInput(
+                    placeholder: i18n.t("password"), 
+                    **textbox_theme,
+                ),
+            ],
+            underline: **underline_theme,
+        ),
+        HorizontalGrid(
+            elements: [
+                Text(i18n.t("Forget your password?"), fontColor: color_template.font-black),
+                Text(i18n.t("Reset password"), fontColor: color_template.main),
+            ],
+            underline: **underline_theme,
+        ),
+        HorizontalGrid(
+            elements: [
+                TextButton(
+                    text: i18n.t("sign_up"),
+                    fontColor: color_template.grey-lv3,
+                    onPress: () => {
+                        ModalDisplay(SignupTermsModal)
+                        },
+                    ),
+                BoxedTextButton(
+                    text: i18n.t("sign_in"),
+                    fontColor: color_template.main,
+                    border: {color: color_template.main, width: 2px, radius: 2px},
+                    fill: color_template.grey-lv1,
+                ),
+            ]
+        )
+    ],
 )

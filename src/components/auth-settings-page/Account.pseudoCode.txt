@@ -8,6 +8,7 @@ import DataComponents.ts
 import LoginPage.vue
 import MyPage.vue
 from clerk/vue import {
+    ClerkProvider,
     SignedIn,
     SignedOut,
     useAuth

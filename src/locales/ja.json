@@ -10,5 +10,10 @@
   "save": "保存",
   "add": "追加",
   "search": "検索",
-  "epithet": "いみょう"
+  "epithet": "いみょう",
+  "sign_in": "サインイン",
+  "sign_up": "サインアップ",
+  "or": "または",
+  "sign_in_with_email": "メールでサインイン ...",
+  "password": "パスワード ..."
 }

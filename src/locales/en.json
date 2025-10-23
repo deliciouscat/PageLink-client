@@ -10,5 +10,10 @@
   "save": "Save",
   "add": "Add",
   "search": "Search",
-  "epithet": "Epithet"
+  "epithet": "Epithet",
+  "sign_in": "Sign in",
+  "sign_up": "Sign up",
+  "or": "Or",
+  "sign_in_with_email": "Sign in with email ...",
+  "password": "Password ..."
 }

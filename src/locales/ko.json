@@ -10,5 +10,10 @@
   "save": "저장",
   "add": "추가",
   "search": "검색",
-  "epithet": "칭호"
+  "epithet": "칭호",
+  "sign_in": "로그인",
+  "sign_up": "회원가입",
+  "or": "또는",
+  "sign_in_with_email": "이메일로 로그인 ...",
+  "password": "비밀번호 ..."
 }

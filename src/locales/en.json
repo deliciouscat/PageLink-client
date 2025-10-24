@@ -15,5 +15,18 @@
   "sign_up": "Sign up",
   "or": "Or",
   "sign_in_with_email": "Sign in with email ...",
-  "password": "Password ..."
+  "password": "Password ...",
+  "forget_password": "Forgot your password?",
+  "reset_password": "Reset password",
+  "terms_of_service": "Terms of Service",
+  "accept": "Accept",
+  "reject": "Reject",
+  "close": "Close",
+  "my_page": "My Page",
+  "logout": "Logout",
+  "email": "Email",
+  "name": "Name",
+  "continue_with_google": "Continue with Google",
+  "continue_with_facebook": "Continue with Facebook",
+  "continue_with_notion": "Continue with Notion"
 }

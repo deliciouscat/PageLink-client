@@ -4,6 +4,8 @@ Clerk를 사용한 로그인 페이지 컴포넌트.
 
 # Pseudo-code
 
+## Imports
+
 import SignupTermsModal.vue
 from clerk/vue import {
     SignInButton,
@@ -17,6 +19,9 @@ Properties(
     appearance: object,     // ClerkProvider
     // 이 외 필요한거
 )
+
+
+## Layout & Themes
 
 underline_theme = {
     width: 2px,

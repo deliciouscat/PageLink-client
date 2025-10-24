@@ -15,5 +15,18 @@
   "sign_up": "サインアップ",
   "or": "または",
   "sign_in_with_email": "メールでサインイン ...",
-  "password": "パスワード ..."
+  "password": "パスワード ...",
+  "forget_password": "パスワードをお忘れですか？",
+  "reset_password": "パスワードをリセット",
+  "terms_of_service": "利用規約",
+  "accept": "同意する",
+  "reject": "拒否する",
+  "close": "閉じる",
+  "my_page": "マイページ",
+  "logout": "ログアウト",
+  "email": "メール",
+  "name": "名前",
+  "continue_with_google": "Googleで続ける",
+  "continue_with_facebook": "Facebookで続ける",
+  "continue_with_notion": "Notionで続ける"
 }

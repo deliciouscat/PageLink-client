@@ -1,0 +1,41 @@
+# 개요
+회원가입 시 약관을 표시하는 모달 컴포넌트. 약관/동의/거절 컴포넌트로 구성.
+
+# Pseudo-code
+
+import assets/terms_of_service.md
+import color_template.css
+
+button_theme = {
+    fontColor: color_template.main,
+    fill: color_template.grey-lv1
+}
+
+VerticalGrid(
+    elements: [
+        Text(i18n.t("terms_of_service"), fontColor: color_template.font-black),
+        Box(
+            element: render(terms_of_service.md),
+            fill: color_template.background,
+            padding: 8px,ß
+            border: {color: color_template.grey-lv3, width: 1px, radius: 2px},
+        ),
+        Padding(vLength: 4px),
+        HorizontalGrid(
+            elements: [
+                BoxedTextButton(
+                    text: i18n.t("reject"),
+                    **button_theme,
+                    border:{radius: 4px}
+                ),
+                BoxedTextButton(
+                    text: i18n.t("accept"),
+                    **button_theme,
+                    border: {color: color_template.main, width: 2px, radius: 4px},
+                ),
+            ],
+            align: "right",
+        )
+    ],
+    border: {color: color_template.grey-lv3, width: 0, radius: 0},
+)

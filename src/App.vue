@@ -24,6 +24,7 @@ import { ref, onMounted } from 'vue'
 import AppHeader from '@/components/app-header/AppHeader.vue'
 import BookmarkPage from '@/components/bookmark-page/BookmarkPage.vue'
 import ExplorePage from '@/components/explore-page/ExplorePage.vue'
+import Account from '@/components/auth-settings-page/Account.vue'
 import { useFileSystemStore, useCommentsStore } from '@/stores/DataComponents'
 
 // ==================== State ====================
@@ -31,8 +32,9 @@ import { useFileSystemStore, useCommentsStore } from '@/stores/DataComponents'
  * 현재 디스플레이 모드
  * - 'bookmark': 북마크 관리 페이지
  * - 'explore': 탐색 페이지
+ * - 'account': 계정 관리 페이지 (로그인/마이페이지)
  */
-const currentMode = ref<'bookmark' | 'explore'>('bookmark')
+const currentMode = ref<'bookmark' | 'explore' | 'account'>('bookmark')
 
 // ==================== Store Initialization ====================
 /**
@@ -61,10 +63,10 @@ onMounted(() => {
  * - currentMode 업데이트로 메인 컨텐츠 자동 전환
  *
  * @param {Object} payload - 디스플레이 모드 정보
- * @param {string} payload.currentMode - 현재 모드 ('bookmark' | 'explore')
+ * @param {string} payload.currentMode - 현재 모드 ('bookmark' | 'explore' | 'account')
  * @param {string} payload.swapTo - 전환 대상 모드
  * @param {string} payload.locale - 언어 설정
- * @param {string | null} payload.overlay - 오버레이 상태 (account/settings)
+ * @param {string | null} payload.overlay - 오버레이 상태 (사용 안 함)
  */
 function handleDisplayModeChange(payload: {
   currentMode: string
@@ -72,7 +74,7 @@ function handleDisplayModeChange(payload: {
   locale: string
   overlay: string | null
 }) {
-  currentMode.value = payload.currentMode as 'bookmark' | 'explore'
+  currentMode.value = payload.currentMode as 'bookmark' | 'explore' | 'account'
 }
 
 /**
@@ -122,6 +124,9 @@ function handleToolbarOperation(payload: {
 
       <!-- Explore Page: 탐색 페이지 -->
       <ExplorePage v-else-if="currentMode === 'explore'" />
+
+      <!-- Account Page: 계정 관리 (로그인/마이페이지) -->
+      <Account v-else-if="currentMode === 'account'" />
 
       <!-- Error State: 잘못된 모드 (발생하지 않아야 함) -->
       <div v-else class="error-state">

@@ -57,21 +57,29 @@ interface DisplayModeInterface {
   currentMode: string
   swapTo: string
   locale: string
-  overlay: string | null
+  overlay: string | null // 사용 안 함 (호환성 유지)
 }
 
 const displayMode = reactive<DisplayModeInterface>({
   currentMode: 'bookmark',
   swapTo: 'explore',
   locale: 'ko', // TODO: config에서 가져와야 함
-  overlay: null
+  overlay: null // 사용 안 함 (호환성 유지)
 })
 
 // DisplayMode swap function
 function swapMode() {
-  const temp = displayMode.currentMode
-  displayMode.currentMode = displayMode.swapTo
-  displayMode.swapTo = temp
+  // Account 페이지에서 돌아올 때는 swapTo로 이동만
+  if (displayMode.currentMode === 'account') {
+    displayMode.currentMode = displayMode.swapTo
+    // swapTo는 bookmark와 explore 중 반대편으로 설정
+    displayMode.swapTo = displayMode.currentMode === 'bookmark' ? 'explore' : 'bookmark'
+  } else {
+    // bookmark ↔ explore 전환
+    const temp = displayMode.currentMode
+    displayMode.currentMode = displayMode.swapTo
+    displayMode.swapTo = temp
+  }
 
   // Emit display mode change
   emit('displayModeChange', { ...displayMode })
@@ -79,8 +87,14 @@ function swapMode() {
 
 // Account menu display function
 function accountMenuDisplay() {
-  console.log("준비중인 기능입니다.") // account_menu
-  displayMode.overlay = "account"
+  // Account 페이지로 모드 전환
+  // 이전 모드를 swapTo에 저장 (돌아갈 페이지)
+  const previousMode = displayMode.currentMode
+  displayMode.swapTo = previousMode === 'bookmark' ? 'bookmark' : 'explore'
+  displayMode.currentMode = 'account'
+
+  // Emit display mode change to show Account page
+  emit('displayModeChange', { ...displayMode })
 }
 
 // Settings menu display function

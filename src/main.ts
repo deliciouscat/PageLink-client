@@ -19,15 +19,15 @@ const app = createApp(App)
 //const app = createApp(TestAppHeader)
 
 app.use(createPinia())
+app.use(clerkPlugin, {
+  publishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+})
 app.use(i18n)
 
 // Clerk 플러그인 추가 (Key가 있을 때만)
 if (PUBLISHABLE_KEY) {
   app.use(clerkPlugin, {
     publishableKey: PUBLISHABLE_KEY,
-    // 선택적 옵션
-    // signInForceRedirectUrl: '/dashboard',
-    // signUpForceRedirectUrl: '/onboarding',
   })
 }
 

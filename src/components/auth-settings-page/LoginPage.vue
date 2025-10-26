@@ -171,10 +171,11 @@ async function handleSocialSignIn(strategy: 'oauth_google' | 'oauth_facebook' | 
     errorMessage.value = ''
 
     // Clerk OAuth 리디렉션
+    // Clerk가 자동으로 현재 URL로 다시 리다이렉트합니다
     await signIn.value.authenticateWithRedirect({
       strategy,
-      redirectUrl: '/sso-callback',
-      redirectUrlComplete: '/'
+      redirectUrl: window.location.origin,
+      redirectUrlComplete: window.location.origin
     })
   } catch (err: unknown) {
     console.error('Social sign in error:', err)

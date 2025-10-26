@@ -28,5 +28,6 @@
   "name": "Name",
   "continue_with_google": "Continue with Google",
   "continue_with_facebook": "Continue with Facebook",
-  "continue_with_notion": "Continue with Notion"
+  "continue_with_notion": "Continue with Notion",
+  "completing_sign_in": "Completing sign in..."
 }

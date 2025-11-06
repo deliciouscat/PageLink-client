@@ -103,6 +103,7 @@ const errorMessage = ref('')
 // 로그인 처리
 async function handleSignIn() {
   if (!isLoaded.value) {
+    console.log('Clerk not loaded yet')
     return
   }
 
@@ -115,23 +116,39 @@ async function handleSignIn() {
     isLoading.value = true
     errorMessage.value = ''
 
-    // Clerk SignIn 시도
-    if (signIn.value) {
-      const result = await signIn.value.create({
-        identifier: email.value,
-        password: password.value,
-      })
+    console.log('Starting sign in...')
 
-      if (result?.status === 'complete') {
-        // 세션 활성화
-        if (setActive.value && result.createdSessionId) {
-          await setActive.value({ session: result.createdSessionId })
-        }
-        // 로그인 성공 - Account 컴포넌트가 자동으로 MyPage로 전환됨
+    // Clerk SignIn 시도
+    if (!signIn.value) {
+      console.error('SignIn object is null')
+      errorMessage.value = 'Authentication service not available'
+      return
+    }
+
+    const result = await signIn.value.create({
+      identifier: email.value,
+      password: password.value,
+    })
+
+    console.log('Sign in result:', result)
+
+    if (result?.status === 'complete') {
+      console.log('Sign in complete, activating session...')
+      // 세션 활성화
+      if (setActive.value && result.createdSessionId) {
+        await setActive.value({ session: result.createdSessionId })
+        console.log('Session activated successfully')
       } else {
-        // 추가 인증 필요 (2FA 등)
-        console.log('Additional verification required:', result)
+        console.error('setActive is null or no session ID:', {
+          setActive: setActive.value,
+          sessionId: result.createdSessionId
+        })
       }
+      // 로그인 성공 - Account 컴포넌트가 자동으로 MyPage로 전환됨
+    } else {
+      // 추가 인증 필요 (2FA 등)
+      console.log('Additional verification required:', result)
+      errorMessage.value = 'Additional verification required'
     }
   } catch (err: unknown) {
     console.error('Sign in error:', err)
@@ -146,6 +163,19 @@ async function handleSignIn() {
 function handleSignUp() {
   if (!email.value || !password.value) {
     errorMessage.value = 'Please enter email and password'
+    return
+  }
+
+  // 비밀번호 유효성 검사 (최소 8자)
+  if (password.value.length < 8) {
+    errorMessage.value = 'Passwords must be 8 characters or more'
+    return
+  }
+
+  // 이메일 형식 검사 (기본)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email.value)) {
+    errorMessage.value = 'Please enter a valid email address'
     return
   }
 

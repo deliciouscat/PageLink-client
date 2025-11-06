@@ -21,6 +21,7 @@
  */
 
 import { ref, onMounted } from 'vue'
+import { useClerk } from '@clerk/vue'
 import AppHeader from '@/components/app-header/AppHeader.vue'
 import BookmarkPage from '@/components/bookmark-page/BookmarkPage.vue'
 import ExplorePage from '@/components/explore-page/ExplorePage.vue'
@@ -44,7 +45,34 @@ const currentMode = ref<'bookmark' | 'explore' | 'account'>('bookmark')
 const fileSystemStore = useFileSystemStore()
 const commentsStore = useCommentsStore()
 
-onMounted(() => {
+// Clerk instance
+const clerk = useClerk()
+
+onMounted(async () => {
+  // OAuth 콜백 처리 - URL에 Clerk OAuth 파라미터가 있는지 확인
+  const searchParams = new URLSearchParams(window.location.search)
+
+  // Clerk OAuth 콜백 처리
+  if (searchParams.has('__clerk_status') || searchParams.has('__clerk_created_session')) {
+    console.log('Handling OAuth callback...')
+    try {
+      // Clerk가 자동으로 세션을 생성할 때까지 대기
+      if (clerk.value) {
+        // handleRedirectCallback은 자동으로 호출되므로, 세션이 생성될 때까지만 대기
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('OAuth callback handled, session should be active')
+
+        // URL 파라미터 정리
+        window.history.replaceState({}, document.title, window.location.pathname)
+
+        // Account 페이지로 이동
+        currentMode.value = 'account'
+      }
+    } catch (error) {
+      console.error('OAuth callback error:', error)
+    }
+  }
+
   // 샘플 북마크 데이터 생성
   if (fileSystemStore.collections.length === 0) {
     fileSystemStore.generateSampleData()

@@ -20,8 +20,9 @@
  * - toolbarOperation 이벤트는 로깅만 (Store에서 직접 처리)
  */
 
-import { ref, onMounted } from 'vue'
-import { useClerk } from '@clerk/vue'
+import { ref, onMounted, watch } from 'vue'
+import { useClerk, useUser } from '@clerk/vue' // 🆕 useUser 추가
+import ConvexProvider from '@/components/convex-provider/ConvexProvider.vue' // 🆕
 import AppHeader from '@/components/app-header/AppHeader.vue'
 import BookmarkPage from '@/components/bookmark-page/BookmarkPage.vue'
 import ExplorePage from '@/components/explore-page/ExplorePage.vue'
@@ -47,30 +48,127 @@ const commentsStore = useCommentsStore()
 
 // Clerk instance
 const clerk = useClerk()
+const { user, isLoaded: userIsLoaded } = useUser() // 🆕
+
+// ==================== 로그인 상태 감지 ====================
+/**
+ * 로그인 성공 시 자동으로 Bookmark 페이지로 이동
+ * - user가 null에서 객체로 변경될 때 (로그인 성공)
+ * - 현재 모드가 'account'일 때만 전환 (로그인 화면에서 로그인한 경우)
+ */
+let previousUser: typeof user.value = null
+watch(
+  [user, userIsLoaded],
+  ([newUser, isLoaded]) => {
+    console.log('[App.vue Watch] User state changed')
+    console.log('[App.vue Watch] isLoaded:', isLoaded)
+    console.log('[App.vue Watch] newUser:', newUser ? `User(${newUser.id})` : 'null')
+    console.log('[App.vue Watch] previousUser:', previousUser ? `User(${previousUser.id})` : 'null')
+    console.log('[App.vue Watch] currentMode:', currentMode.value)
+
+    // Clerk가 로드되고, 로그인 성공한 경우 (null → user 객체)
+    if (isLoaded && newUser && !previousUser && currentMode.value === 'account') {
+      console.log('[App.vue Watch] ✅ Login successful, redirecting to bookmark page')
+      currentMode.value = 'bookmark'
+    }
+    // 이전 사용자 상태 업데이트
+    previousUser = newUser
+  },
+  { immediate: false }
+)
+
+// 로그인 전 초기 상태: Account 페이지 표시
+watch(
+  [userIsLoaded],
+  ([isLoaded]) => {
+    console.log('[App.vue Watch2] UserIsLoaded changed:', isLoaded)
+    console.log('[App.vue Watch2] User exists:', !!user.value)
+    console.log('[App.vue Watch2] Current mode:', currentMode.value)
+
+    if (isLoaded && !user.value && currentMode.value === 'bookmark') {
+      console.log('[App.vue Watch2] Not logged in, switching to account page')
+      // 로그인 안된 상태에서 bookmark 모드면 account로 변경
+      currentMode.value = 'account'
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
+  console.log('[App.vue] Component mounted')
+  console.log('[App.vue] Current URL:', window.location.href)
+  console.log('[App.vue] Current mode:', currentMode.value)
+  console.log('[App.vue] User loaded:', userIsLoaded.value)
+  console.log('[App.vue] User exists:', !!user.value)
+
   // OAuth 콜백 처리 - URL에 Clerk OAuth 파라미터가 있는지 확인
   const searchParams = new URLSearchParams(window.location.search)
+  const hashParams = window.location.hash
+
+  console.log('[App.vue] Search params:', Array.from(searchParams.entries()))
+  console.log('[App.vue] Hash:', hashParams)
 
   // Clerk OAuth 콜백 처리
-  if (searchParams.has('__clerk_status') || searchParams.has('__clerk_created_session')) {
-    console.log('Handling OAuth callback...')
+  // Facebook은 #_=_ 를 추가하므로 hash도 확인
+  if (searchParams.has('__clerk_status') || searchParams.has('__clerk_created_session') || hashParams.includes('_=_')) {
+    console.log('[App.vue] OAuth callback detected!')
+    console.log('[App.vue] Clerk status:', searchParams.get('__clerk_status'))
+    console.log('[App.vue] Session created:', searchParams.get('__clerk_created_session'))
+
     try {
-      // Clerk가 자동으로 세션을 생성할 때까지 대기
-      if (clerk.value) {
-        // handleRedirectCallback은 자동으로 호출되므로, 세션이 생성될 때까지만 대기
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        console.log('OAuth callback handled, session should be active')
+      // Clerk와 userIsLoaded가 준비될 때까지 대기
+      let clerkWaitAttempts = 0
+      while ((!clerk.value || !userIsLoaded.value) && clerkWaitAttempts < 20) {
+        console.log(`[App.vue] Waiting for Clerk to load... (attempt ${clerkWaitAttempts + 1}/20)`)
+        await new Promise(resolve => setTimeout(resolve, 200))
+        clerkWaitAttempts++
+      }
 
-        // URL 파라미터 정리
-        window.history.replaceState({}, document.title, window.location.pathname)
+      if (clerk.value && userIsLoaded.value) {
+        console.log('[App.vue] Clerk loaded, waiting for user session...')
 
-        // Account 페이지로 이동
+        // 사용자 세션이 완전히 로드될 때까지 최대 5초 대기
+        let attempts = 0
+        const maxAttempts = 10
+
+        while (!user.value && attempts < maxAttempts) {
+          console.log(`[App.vue] Waiting for user session... (attempt ${attempts + 1}/${maxAttempts})`)
+          await new Promise(resolve => setTimeout(resolve, 500))
+          attempts++
+        }
+
+        if (user.value) {
+          console.log('[App.vue] ✅ OAuth callback handled successfully!')
+          console.log('[App.vue] User ID:', user.value.id)
+          console.log('[App.vue] User email:', user.value.emailAddresses?.[0]?.emailAddress)
+
+          // URL 파라미터와 hash 정리
+          window.history.replaceState({}, document.title, window.location.pathname)
+          console.log('[App.vue] URL cleaned:', window.location.href)
+
+          // watch가 자동으로 bookmark 페이지로 전환함
+          console.log('[App.vue] Waiting for watch to trigger page transition...')
+        } else {
+          console.error('[App.vue] ❌ Failed to load user session after OAuth callback')
+          console.error('[App.vue] userIsLoaded:', userIsLoaded.value)
+          console.error('[App.vue] user:', user.value)
+
+          // URL 파라미터와 hash 정리
+          window.history.replaceState({}, document.title, window.location.pathname)
+          currentMode.value = 'account'
+        }
+      } else {
+        console.error('[App.vue] ❌ Clerk failed to load')
+        console.error('[App.vue] clerk:', clerk.value)
+        console.error('[App.vue] userIsLoaded:', userIsLoaded.value)
         currentMode.value = 'account'
       }
     } catch (error) {
-      console.error('OAuth callback error:', error)
+      console.error('[App.vue] ❌ OAuth callback error:', error)
+      currentMode.value = 'account'
     }
+  } else {
+    console.log('[App.vue] No OAuth callback detected')
   }
 
   // 샘플 북마크 데이터 생성
@@ -131,36 +229,60 @@ function handleToolbarOperation(payload: {
     - 전체 화면 레이아웃
   -->
   <div id="app">
-    <!--
-      App Header
-      - 로고, 계정, 설정, 모드 전환 버튼
-      - ToolBar (검색/추가 기능)
-      - 이벤트:
-        - @display-mode-change: 모드 전환 시
-        - @toolbar-operation: 검색/추가 작업 시
-    -->
-    <AppHeader @display-mode-change="handleDisplayModeChange" @toolbar-operation="handleToolbarOperation" />
+    <!-- 🆕 ConvexProvider로 래핑 (로그인된 사용자만) -->
+    <ConvexProvider v-if="user">
+      <!--
+        App Header
+        - 로고, 계정, 설정, 모드 전환 버튼
+        - ToolBar (검색/추가 기능)
+        - 이벤트:
+          - @display-mode-change: 모드 전환 시
+          - @toolbar-operation: 검색/추가 작업 시
+      -->
+      <AppHeader @display-mode-change="handleDisplayModeChange" @toolbar-operation="handleToolbarOperation" />
 
-    <!--
-      Main Content Area
-      - currentMode에 따라 다른 페이지 표시
-      - v-if 조건부 렌더링으로 컴포넌트 마운트/언마운트
-    -->
-    <main class="main-content">
-      <!-- Bookmark Page: 북마크 관리 -->
-      <BookmarkPage v-if="currentMode === 'bookmark'" />
+      <!--
+        Main Content Area
+        - currentMode에 따라 다른 페이지 표시
+        - v-if 조건부 렌더링으로 컴포넌트 마운트/언마운트
+      -->
+      <main class="main-content">
+        <!-- Bookmark Page: 북마크 관리 -->
+        <BookmarkPage v-if="currentMode === 'bookmark'" />
 
-      <!-- Explore Page: 탐색 페이지 -->
-      <ExplorePage v-else-if="currentMode === 'explore'" />
+        <!-- Explore Page: 탐색 페이지 -->
+        <ExplorePage v-else-if="currentMode === 'explore'" />
 
-      <!-- Account Page: 계정 관리 (로그인/마이페이지) -->
-      <Account v-else-if="currentMode === 'account'" />
+        <!-- Account Page: 계정 관리 (로그인/마이페이지) -->
+        <Account v-else-if="currentMode === 'account'" />
 
-      <!-- Error State: 잘못된 모드 (발생하지 않아야 함) -->
-      <div v-else class="error-state">
-        <p>Error: Invalid display mode</p>
-      </div>
-    </main>
+        <!-- Error State: 잘못된 모드 (발생하지 않아야 함) -->
+        <div v-else class="error-state">
+          <p>Error: Invalid display mode</p>
+        </div>
+      </main>
+    </ConvexProvider>
+
+    <!-- 로그인 전 UI -->
+    <div v-else>
+      <!--
+        App Header
+        - 로고, 계정, 설정, 모드 전환 버튼
+        - ToolBar (검색/추가 기능)
+        - 이벤트:
+          - @display-mode-change: 모드 전환 시
+          - @toolbar-operation: 검색/추가 작업 시
+      -->
+      <AppHeader @display-mode-change="handleDisplayModeChange" @toolbar-operation="handleToolbarOperation" />
+
+      <!--
+        Main Content Area
+        - 로그인 전에는 Account 페이지만 표시 (LoginPage)
+      -->
+      <main class="main-content">
+        <Account />
+      </main>
+    </div>
   </div>
 </template>
 

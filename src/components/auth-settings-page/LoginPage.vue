@@ -75,7 +75,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PhEnvelopeSimple, PhKey } from '@phosphor-icons/vue'
-import { useSignIn } from '@clerk/vue'
+import { useSignIn, useClerk } from '@clerk/vue'
 import GoogleIcon from '../assets/social-icons/GoogleIcon.vue'
 import FacebookIcon from '../assets/social-icons/FacebookIcon.vue'
 import NotionIcon from '../assets/social-icons/NotionIcon.vue'
@@ -85,6 +85,7 @@ const { t: $t } = useI18n()
 
 // Clerk SignIn
 const { signIn, isLoaded, setActive } = useSignIn()
+const clerk = useClerk()
 
 // Emits
 const emit = defineEmits<{
@@ -190,9 +191,10 @@ function handleResetPassword() {
   console.log('Password reset requested')
 }
 
-// 소셜 로그인 처리
+// 소셜 로그인 처리 - Clerk Account Portal 사용
 async function handleSocialSignIn(strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_notion') {
-  if (!isLoaded.value || !signIn.value) {
+  if (!clerk.value) {
+    console.warn('[LoginPage] Clerk not loaded yet')
     return
   }
 
@@ -200,17 +202,17 @@ async function handleSocialSignIn(strategy: 'oauth_google' | 'oauth_facebook' | 
     isLoading.value = true
     errorMessage.value = ''
 
-    // Clerk OAuth 리디렉션
-    // Clerk가 자동으로 현재 URL로 다시 리다이렉트합니다
-    await signIn.value.authenticateWithRedirect({
-      strategy,
+    console.log('[LoginPage] Redirecting to Account Portal for:', strategy)
+    
+    // Clerk Account Portal로 리디렉션 (OAuth 전략을 URL에 포함)
+    // Account Portal이 OAuth를 처리하고 다시 앱으로 돌아옴
+    await clerk.value.redirectToSignIn({
       redirectUrl: window.location.origin,
-      redirectUrlComplete: window.location.origin
     })
   } catch (err: unknown) {
-    console.error('Social sign in error:', err)
+    console.error('[LoginPage] Redirect error:', err)
     const error = err as { errors?: Array<{ message: string }> }
-    errorMessage.value = error.errors?.[0]?.message || 'Social sign in failed'
+    errorMessage.value = error.errors?.[0]?.message || 'Sign in failed'
     isLoading.value = false
   }
 }

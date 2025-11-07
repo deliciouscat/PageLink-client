@@ -18,6 +18,8 @@
   "dependencies": {
     "@clerk/vue": "^1.14.7",
     "@phosphor-icons/vue": "^2.2.1",
+    "convex": "^1.28.2",
+    "convex-vue": "^0.1.5",
     "katex": "^0.16.25",
     "marked": "^16.4.1",
     "pinia": "^3.0.3",

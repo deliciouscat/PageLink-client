@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { clerkPlugin } from '@clerk/vue'
+import { convexVue } from 'convex-vue' // 🆕
 import App from './App.vue'
 import i18n from './i18n'
 import './styles/color_template.css'
@@ -9,9 +10,14 @@ import './styles/color_template.css'
 
 // Clerk Publishable Key 확인
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const CONVEX_URL = import.meta.env.VITE_CONVEX_URL // 🆕
 
 if (!PUBLISHABLE_KEY) {
   console.warn('Clerk Publishable Key are not set')
+}
+
+if (!CONVEX_URL) {
+  console.warn('Convex URL is not set')
 }
 
 const app = createApp(App)
@@ -25,6 +31,13 @@ app.use(i18n)
 if (PUBLISHABLE_KEY) {
   app.use(clerkPlugin, {
     publishableKey: PUBLISHABLE_KEY,
+  })
+}
+
+// 🆕 Convex 플러그인 추가 (URL이 있을 때만)
+if (CONVEX_URL) {
+  app.use(convexVue, {
+    url: CONVEX_URL,
   })
 }
 
